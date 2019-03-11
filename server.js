@@ -12,6 +12,9 @@ const init = require('./scripts/init')
 const { NODE_ENV } = process.env
 const loggerMiddleware = expressWinston.logger({ winstonInstance: log })
 
+// Accept crazy weird CERTs
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0
+
 module.exports = (async () => {
   try {
     const server = express()
@@ -26,10 +29,7 @@ module.exports = (async () => {
       secret: config.SESSION_SECRET,
       resave: false,
       saveUninitialized: true,
-      store: mongoStore,
-      cookie: {
-        secure: true
-      }
+      store: mongoStore
     }))
     server.use(keycloak.middleware())
     // Apply API routes
