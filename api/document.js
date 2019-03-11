@@ -456,6 +456,28 @@ router.route('/:id/comments/:idComment/like')
     }
   )
 
+router.route('/:id/comments/:idComment')
+  .delete(
+    auth.keycloak.protect('realm:accountable'),
+    async (req, res, next) => {
+      try {
+        const { idComment } = req.params
+        const document = await Document.get({ _id: req.params.id })
+        const isTheAuthor = req.session.user ? req.session.user._id.equals(document.author._id) : false
+        console.log(document)
+        console.log(isTheAuthor)
+        if (!isTheAuthor) {
+          throw errors.ErrForbidden
+        }
+        await Comment.remove(idComment)
+        res.json({ message: 'Comentario borrado exitosamente' })
+        res.status(status.OK)
+      } catch (err) {
+        next(err)
+      }
+    }
+  )
+
 router.route('/:id/comments/:idComment/reply')
   .post(
     middlewares.checkId,

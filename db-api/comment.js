@@ -77,4 +77,14 @@ exports.updateDecorations = async function updateDecorations (version, decoratio
       }))
       // Save!
     })
+
+    // Remove customForm
+}
+
+exports.remove = async function remove (id) {
+  return Comment.findOne({ _id: id })
+    .then((Comment) => {
+      if (!Comment) throw ErrNotFound('Comment to remove not found')
+      return Comment.remove()
+    })
 }

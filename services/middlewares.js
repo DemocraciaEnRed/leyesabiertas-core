@@ -66,6 +66,8 @@ exports.bindUserToSession = async (req, res, next) => {
             email: auth.getEmail(req),
             roles: auth.getRoles(req)
           })
+          // Retrieve user  again
+          user = await User.get({ keycloak: keycloakId })
           req.session.user = user
           next()
         } else {
