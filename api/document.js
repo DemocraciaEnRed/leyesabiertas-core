@@ -40,10 +40,16 @@ router.route('/')
     async (req, res, next) => {
       try {
         let results = null
+        let sort = null
+        if (req.query) {
+          sort = {}
+          sort.createdAt = req.query.created === 'ASC' ? '1' : '-1'
+        }
         // If it is null, just show the published documents
         results = await Document.list({ published: true }, {
           limit: req.query.limit,
-          page: req.query.page
+          page: req.query.page,
+          sort
         })
         let today = new Date()
         results.docs.forEach((doc) => {
@@ -74,11 +80,14 @@ router.route('/')
       try {
         // Get the community, we will need it to check the permissions of an accountable
         const community = await Community.get()
+        // ~~~~~~~~~~~~~~~~~~~~~
+        // DELETED - THIS WAS DELETED IN DERLA-38
         // check if the user reached the creation limit
-        const documentsCount = await Document.countAuthorDocuments(req.session.user._id)
-        if (documentsCount >= community.permissions.accountable.documentCreationLimit) {
-          throw errors.ErrNotAuthorized(`Cannot create more documents (Creation limit reached: ${community.permissions.accountable.documentCreationLimit})`)
-        }
+        // const documentsCount = await Document.countAuthorDocuments(req.session.user._id)
+        // if (documentsCount >= community.permissions.accountable.documentCreationLimit) {
+        //   throw errors.ErrNotAuthorized(`Cannot create more documents (Creation limit reached: ${community.permissions.accountable.documentCreationLimit})`)
+        // }
+        // ~~~~~~~~~~~~~~~~~~~~~
         req.body.author = req.session.user._id
         // In the body of the request customForm will be a slug. It will be an id later.
         const customForm = await CustomForm.get({ slug: req.body.customForm })

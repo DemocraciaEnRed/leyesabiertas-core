@@ -54,8 +54,16 @@ exports.get = async function get (query) {
 }
 
 // List documents
-exports.list = async function list (query, { limit, page }) {
-  let documentList = await Document.paginate(query, { page, limit, lean: true, populate: [{ path: 'author', select: dbUser.exposeAll(false) }, 'currentVersion'] })
+exports.list = async function list (query, { limit, page, sort }) {
+  let optionsPaginate = {}
+  optionsPaginate.limit = limit
+  optionsPaginate.page = page
+  optionsPaginate.lean = true
+  optionsPaginate.populate = [{ path: 'author', select: dbUser.exposeAll(false) }, 'currentVersion']
+  if (sort) {
+    optionsPaginate.sort = sort
+  }
+  let documentList = await Document.paginate(query, optionsPaginate)
   // let promisesPopulate = documentList.docs.map(async (doc) => {
   //   let theVersion = await DocumentVersion.findOne({
   //     document: doc._id,
