@@ -40,10 +40,16 @@ router.route('/')
     async (req, res, next) => {
       try {
         let results = null
+        let sort = null
+        if (req.query) {
+          sort = {}
+          sort.createdAt = req.query.created === 'ASC' ? '1' : '-1'
+        }
         // If it is null, just show the published documents
         results = await Document.list({ published: true }, {
           limit: req.query.limit,
-          page: req.query.page
+          page: req.query.page,
+          sort
         })
         let today = new Date()
         results.docs.forEach((doc) => {
@@ -72,13 +78,16 @@ router.route('/')
     auth.keycloak.protect('realm:accountable'),
     async (req, res, next) => {
       try {
+        // ~~~~~~~~~~~~~~~~~~~~~
+        // DELETED - THIS WAS DELETED IN DERLA-38
         // Get the community, we will need it to check the permissions of an accountable
-        const community = await Community.get()
+        // const community = await Community.get()
         // check if the user reached the creation limit
-        const documentsCount = await Document.countAuthorDocuments(req.session.user._id)
-        if (documentsCount >= community.permissions.accountable.documentCreationLimit) {
-          throw errors.ErrNotAuthorized(`Cannot create more documents (Creation limit reached: ${community.permissions.accountable.documentCreationLimit})`)
-        }
+        // const documentsCount = await Document.countAuthorDocuments(req.session.user._id)
+        // if (documentsCount >= community.permissions.accountable.documentCreationLimit) {
+        //   throw errors.ErrNotAuthorized(`Cannot create more documents (Creation limit reached: ${community.permissions.accountable.documentCreationLimit})`)
+        // }
+        // ~~~~~~~~~~~~~~~~~~~~~
         req.body.author = req.session.user._id
         // In the body of the request customForm will be a slug. It will be an id later.
         const customForm = await CustomForm.get({ slug: req.body.customForm })
@@ -458,18 +467,21 @@ router.route('/:id/comments/:idComment/like')
 
 router.route('/:id/comments/:idComment')
   .delete(
-    auth.keycloak.protect('realm:accountable'),
+    auth.keycloak.protect(),
     async (req, res, next) => {
       try {
         const { idComment } = req.params
         const document = await Document.get({ _id: req.params.id })
-        const isTheAuthor = req.session.user ? req.session.user._id.equals(document.author._id) : false
-        console.log(document)
-        console.log(isTheAuthor)
-        if (!isTheAuthor) {
+        const comment = await Comment.get({ _id: req.params.idComment })
+        // is the author of the document? He/She can delete the comment
+        const isTheAuthorOfDocument = req.session.user ? req.session.user._id.equals(document.author._id) : false
+        // check if is the creator of the comment
+        const isTheAuthorOfComment = req.session.user ? req.session.user._id.equals(comment.user._id) : false
+        if (!isTheAuthorOfDocument && !isTheAuthorOfComment) {
           throw errors.ErrForbidden
         }
         await Comment.remove(idComment)
+        await Document.subtractComment({ _id: req.params.id })
         res.json({ message: 'Comentario borrado exitosamente' })
         res.status(status.OK)
       } catch (err) {
@@ -491,6 +503,7 @@ router.route('/:id/comments/:idComment/reply')
         }
         // Update the comment
         const commentUpdated = await Comment.reply({ _id: req.params.idComment }, req.body.reply)
+        notifier.sendCommentNotification('comment-replied', req.params.idComment)
         res.status(status.OK).json(commentUpdated)
       } catch (err) {
         next(err)
