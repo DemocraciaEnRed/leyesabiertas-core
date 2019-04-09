@@ -481,6 +481,7 @@ router.route('/:id/comments/:idComment')
           throw errors.ErrForbidden
         }
         await Comment.remove(idComment)
+        await Document.subtractComment({ _id: req.params.id })
         res.json({ message: 'Comentario borrado exitosamente' })
         res.status(status.OK)
       } catch (err) {
