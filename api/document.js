@@ -503,6 +503,7 @@ router.route('/:id/comments/:idComment/reply')
         }
         // Update the comment
         const commentUpdated = await Comment.reply({ _id: req.params.idComment }, req.body.reply)
+        notifier.sendCommentNotification('comment-replied', req.params.idComment)
         res.status(status.OK).json(commentUpdated)
       } catch (err) {
         next(err)
