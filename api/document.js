@@ -467,15 +467,17 @@ router.route('/:id/comments/:idComment/like')
 
 router.route('/:id/comments/:idComment')
   .delete(
-    auth.keycloak.protect('realm:accountable'),
+    auth.keycloak.protect(),
     async (req, res, next) => {
       try {
         const { idComment } = req.params
         const document = await Document.get({ _id: req.params.id })
-        const isTheAuthor = req.session.user ? req.session.user._id.equals(document.author._id) : false
-        console.log(document)
-        console.log(isTheAuthor)
-        if (!isTheAuthor) {
+        const comment = await Comment.get({ _id: req.params.idComment })
+        // is the author of the document? He/She can delete the comment
+        const isTheAuthorOfDocument = req.session.user ? req.session.user._id.equals(document.author._id) : false
+        // check if is the creator of the comment
+        const isTheAuthorOfComment = req.session.user ? req.session.user._id.equals(comment.user._id) : false
+        if (!isTheAuthorOfDocument && !isTheAuthorOfComment) {
           throw errors.ErrForbidden
         }
         await Comment.remove(idComment)
