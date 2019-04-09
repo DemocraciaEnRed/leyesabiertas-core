@@ -78,10 +78,10 @@ router.route('/')
     auth.keycloak.protect('realm:accountable'),
     async (req, res, next) => {
       try {
-        // Get the community, we will need it to check the permissions of an accountable
-        const community = await Community.get()
         // ~~~~~~~~~~~~~~~~~~~~~
         // DELETED - THIS WAS DELETED IN DERLA-38
+        // Get the community, we will need it to check the permissions of an accountable
+        // const community = await Community.get()
         // check if the user reached the creation limit
         // const documentsCount = await Document.countAuthorDocuments(req.session.user._id)
         // if (documentsCount >= community.permissions.accountable.documentCreationLimit) {
