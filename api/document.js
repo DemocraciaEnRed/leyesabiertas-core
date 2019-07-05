@@ -179,8 +179,9 @@ router.route('/:id')
         if (isClosed) {
           const contributionsData = await DocumentVersion.countContributions({ document: req.params.id })
           const contextualCommentsCount = await Comment.count({ document: req.params.id, decoration: { $ne: null } })
+          const contributors = await Comment.countContributors({ document: req.params.id, decoration: { $ne: null } })
           payload.contributionsCount = contributionsData.contributionsCount
-          payload.contributorsCount = contributionsData.contributorsCount
+          payload.contributorsCount = contributors
           payload.contextualCommentsCount = contextualCommentsCount
         }
         // Deliver the document
