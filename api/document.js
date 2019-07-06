@@ -384,6 +384,11 @@ router.route('/:id/comments')
         // Save the comment
         const newComment = await Comment.create(commentBody)
         await Document.addComment({ _id: req.params.id })
+        // If is NOT the author then send a notification to the author
+        const isTheAuthor = req.session.user ? req.session.user._id.equals(document.author._id) : false
+        if (!isTheAuthor) {
+          notifier.sendNewCommentNotification('comment-new', newComment._id)
+        }
         // Return the comment with the ID
         res.status(status.CREATED).send(newComment)
       } catch (err) {

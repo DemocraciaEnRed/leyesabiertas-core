@@ -19,6 +19,21 @@ exports.sendCommentNotification = async (notificationType, commentId) => {
   })
 }
 
+exports.sendNewCommentNotification = async (notificationType, commentId) => {
+  let payload = {
+    type: notificationType,
+    comment: commentId
+  }
+  http.post(`${NOTIFIER_URL}/comment-new`, payload).then((response) => {
+    log.info(response.data.message, payload)
+  }).catch((error) => {
+    log.error('ERROR Sending Email', {
+      meta: payload,
+      message: error.message
+    })
+  })
+}
+
 exports.setDocumentClosesNotification = async (documentId, closingDate) => {
   let payload = {
     id: documentId,
