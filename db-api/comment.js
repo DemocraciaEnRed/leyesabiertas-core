@@ -18,6 +18,19 @@ exports.get = function get (query, expose) {
 exports.count = function count (query) {
   return Comment.countDocuments(query)
 }
+exports.countContributors = async function countContributors (query) {
+  let contributors = []
+  return Comment.find(query)
+    .then(async (comments) => {
+      // Found?
+      if (!comments) throw errors.ErrNotFound('Error retrieving comments')
+      // Do stuff
+      await Promise.all(comments.map(async (comment) => {
+        if (!contributors.includes(comment.user.toString())) contributors.push(comment.user.toString())
+      }))
+      return contributors.length
+    })
+}
 
 exports.getAll = function getAll (query, expose) {
   return Comment

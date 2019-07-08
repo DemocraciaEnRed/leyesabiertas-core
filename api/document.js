@@ -179,8 +179,9 @@ router.route('/:id')
         if (isClosed) {
           const contributionsData = await DocumentVersion.countContributions({ document: req.params.id })
           const contextualCommentsCount = await Comment.count({ document: req.params.id, decoration: { $ne: null } })
+          const contributors = await Comment.countContributors({ document: req.params.id, decoration: { $ne: null } })
           payload.contributionsCount = contributionsData.contributionsCount
-          payload.contributorsCount = contributionsData.contributorsCount
+          payload.contributorsCount = contributors
           payload.contextualCommentsCount = contextualCommentsCount
         }
         // Deliver the document
@@ -383,6 +384,11 @@ router.route('/:id/comments')
         // Save the comment
         const newComment = await Comment.create(commentBody)
         await Document.addComment({ _id: req.params.id })
+        // If is NOT the author then send a notification to the author
+        const isTheAuthor = req.session.user ? req.session.user._id.equals(document.author._id) : false
+        if (!isTheAuthor) {
+          notifier.sendNewCommentNotification('comment-new', newComment._id)
+        }
         // Return the comment with the ID
         res.status(status.CREATED).send(newComment)
       } catch (err) {
