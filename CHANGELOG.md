@@ -1,5 +1,11 @@
 # Changelog
 
+**1.4.0**
+
+- DERLA-33 Nuevo feature: Poder navegar por las versiones historicas del documento (Agregado obtener la version de un documento)
+
+_Compatible con leyesabiertas-notifier:1.3.0 y leyesabiertas-web:1.4.0_
+
 **1.3.1**
 
 - DERLA-65 Fix error stack=TypeError: timeago is not a function & cannot mongoose.connect() multiple times while connected
