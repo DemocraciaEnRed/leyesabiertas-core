@@ -263,6 +263,54 @@ router.route('/:id')
       }
     })
 
+router.route('/:id/version/:version')
+  .get(
+    middlewares.checkId,
+    async (req, res, next) => {
+      try {
+        // let query = {
+        //   document: req.params.id,
+        //   version: req.params.version
+        // }
+        const document = await Document.get({ _id: req.params.id })
+        // No document?
+        if (!document) throw errors.ErrNotFound('Document not found or doesn\'t exist')
+        // Check if the user is the author
+        const isTheAuthor = req.session.user ? req.session.user._id.equals(document.author._id) : false
+        const isClosed = new Date() > new Date(document.currentVersion.content.closingDate)
+        // Check if it is published or not (draft)
+        if (!document.published) {
+          // It's a draft, check if the author is the user who requested it.
+          if (!isTheAuthor) {
+            // No, Then the user shouldn't be asking for this document.
+            throw errors.ErrForbidden
+          }
+        }
+        document.closed = isClosed
+        let payload = {
+          document: document,
+          isAuthor: isTheAuthor
+        }
+        const version = await DocumentVersion.get({ document: req.params.id, version: req.params.version })
+        if (!version) throw errors.ErrNotFound('Version not found or doesn\'t exist')
+        payload.retrievedVersion = version
+        // If the document is closed
+        if (isClosed) {
+          const contributionsData = await DocumentVersion.countContributions({ document: req.params.id })
+          const contextualCommentsCount = await Comment.count({ document: req.params.id, decoration: { $ne: null } })
+          const contributors = await Comment.countContributors({ document: req.params.id, decoration: { $ne: null } })
+          payload.contributionsCount = contributionsData.contributionsCount
+          payload.contributorsCount = contributors
+          payload.contextualCommentsCount = contextualCommentsCount
+        }
+        // Deliver the document
+        res.status(status.OK).json(payload)
+      } catch (err) {
+        next(err)
+      }
+    }
+ )
+
 router.route('/:id/comments')
   /**
      * @api {get} /documents/:idDocument/comments Get an array of comments
