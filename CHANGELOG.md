@@ -1,5 +1,11 @@
 # Changelog
 
+**1.5.0**
+
+- Agregado "closed" atributo a todos los documentos que devuelve el API endpoint `/my-documents` 
+
+_Compatible con leyesabiertas-notifier:1.3.0 y leyesabiertas-web:1.5.0_
+
 **1.4.0**
 
 - DERLA-33 Nuevo feature: Poder navegar por las versiones historicas del documento (Agregado obtener la version de un documento)

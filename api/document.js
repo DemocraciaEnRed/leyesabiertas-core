@@ -121,6 +121,10 @@ router.route('/my-documents')
           limit: req.query.limit,
           page: req.query.page
         })
+        let today = new Date()
+        results.docs.forEach((doc) => {
+          doc.closed = today > new Date(doc.currentVersion.content.closingDate)
+        })
         res.status(status.OK).json({
           results: results.docs,
           pagination: {
