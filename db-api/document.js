@@ -53,13 +53,20 @@ exports.get = async function get (query) {
   return document
 }
 
+exports.retrieve = async function get (query, sort) {
+  let theSort = sort || {}
+  console.log(theSort)
+  let document = await Document.find(query).populate({ path: 'author', select: dbUser.exposeAll(false) }).populate('currentVersion').sort(theSort).lean()
+  return document
+}
+
 // List documents
 exports.list = async function list (query, { limit, page, sort }) {
   let optionsPaginate = {}
   optionsPaginate.limit = limit
   optionsPaginate.page = page
   optionsPaginate.lean = true
-  optionsPaginate.populate = [{ path: 'author', select: dbUser.exposeAll(false) }, 'currentVersion']
+  optionsPaginate.populate = [{ path: 'author', select: dbUser.exposeAll(false) }, {path: 'currentVersion'}]
   if (sort) {
     optionsPaginate.sort = sort
   }
