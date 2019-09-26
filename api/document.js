@@ -33,7 +33,7 @@ router.route('/')
   /**
    * @api {get} /documents List
    * @apiName getDocuments
-   * @apiDescription Returns a paginated list of -published- documents
+   * @apiDescription Returns a paginated list of -published- documents => querystring = page,limit,closed(null,false,true),created(ASC,DESC)
    * @apiGroup Document
    */
   .get(
@@ -43,24 +43,48 @@ router.route('/')
         let sort = null
         if (req.query) {
           sort = {}
-          sort.createdAt = req.query.created === 'ASC' ? '1' : '-1'
+          sort.createdAt = req.query.created === 'ASC' ? 1 : -1
         }
-        // If it is null, just show the published documents
-        results = await Document.list({ published: true }, {
-          limit: req.query.limit,
-          page: req.query.page,
-          sort
-        })
+        let paginate = {
+          limit: req.query.limit || 10,
+          page: req.query.page || 1
+        }
+        results = await Document.retrieve({ published: true }, sort)
         let today = new Date()
-        results.docs.forEach((doc) => {
+        results.forEach((doc) => {
           doc.closed = today > new Date(doc.currentVersion.content.closingDate)
         })
+        if (req.query.closed !== 'null') {
+          results = results.filter((doc) => {
+            return doc.closed === (req.query.closed === 'true')
+          })
+        } else {
+          let arrOpened = results.filter((doc) => {
+            return doc.closed === false
+          })
+          let arrClosed = results.filter((doc) => {
+            return doc.closed === true
+          })
+          results = arrOpened.concat(arrClosed)
+          // results = results.sort(function (x, y) {
+          //   // return (x === y)? 0 : x? -1 : 1;
+          //   return (x.closed === y.closed) ? 0 : x.closed ? 1 : -1
+          // })
+        }
+        let auxOne = parseInt(results.length / paginate.limit)
+        let auxTwo = results.length % paginate.limit
+        if (auxTwo) {
+          auxOne++
+        }
+        let cantTotal = results.length
+        let finalArr = results.splice(((paginate.page - 1) * paginate.limit), paginate.limit)
         res.status(status.OK).json({
-          results: results.docs,
+          results: finalArr,
           pagination: {
-            count: results.total,
-            page: results.page,
-            limit: results.limit
+            count: cantTotal,
+            page: paginate.page,
+            pages: auxOne,
+            limit: paginate.limit
           }
         })
       } catch (err) {
@@ -120,6 +144,10 @@ router.route('/my-documents')
         results = await Document.list({ author: req.session.user._id }, {
           limit: req.query.limit,
           page: req.query.page
+        })
+        let today = new Date()
+        results.docs.forEach((doc) => {
+          doc.closed = today > new Date(doc.currentVersion.content.closingDate)
         })
         res.status(status.OK).json({
           results: results.docs,
@@ -309,7 +337,7 @@ router.route('/:id/version/:version')
         next(err)
       }
     }
- )
+  )
 
 router.route('/:id/comments')
   /**

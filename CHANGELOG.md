@@ -1,5 +1,12 @@
 # Changelog
 
+**1.5.0**
+
+- Ahora `GET /documents` cambio su forma de obtener y paginar los resultados que obtiene. En coordinacion con el front, ahora los resultados se paginan, y se fuerza el orden de que en primer lugar aparecen las propuestas abiertas, y luego, las cerradas. Se descarta entonces el uso de "mongoose-paginate" para este caso, lamentablemente el paquete limita mucho llevar a cabo queries complejas.
+- Agregado "closed" atributo a todos los documentos que devuelve el API endpoint `/my-documents` 
+
+_Compatible con leyesabiertas-notifier:1.3.0 y leyesabiertas-web:1.5.0_
+
 **1.4.0**
 
 - DERLA-33 Nuevo feature: Poder navegar por las versiones historicas del documento (Agregado obtener la version de un documento)
