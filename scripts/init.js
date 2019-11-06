@@ -89,6 +89,7 @@ let projectCustomForm = {
           'title',
           'imgCover',
           'youtubeId',
+          'customVideoId',
           'fundation'
         ],
         'name': "Project's basic info"
@@ -135,6 +136,17 @@ let projectCustomForm = {
         ],
         'title': 'Youtube Video ID'
       },
+      'customVideoId': {
+        'anyof': [
+          {
+            'type': 'null'
+          },
+          {
+            'type': 'String'
+          }
+        ],
+        'title': 'HCDN Custom Video ID'
+      },
       'closingDate': {
         'oneOf': [
           {
@@ -168,29 +180,55 @@ let projectCustomForm = {
 }
 
 class DatabaseNotEmpty extends Error { }
+class StopSetup extends Error { }
 
-async function checkDB () {
+async function checkDB() {
   log.debug('* Checking if database has data on it')
   let community = await Community.findOne({})
-  if (community) throw new DatabaseNotEmpty('There is at least one community already on the DB. Skipping init')
   let customForm = await CustomForm.findOne({})
-  if (customForm) throw new DatabaseNotEmpty('There is at least one document type already on the DB. Skipping init')
+  if (customForm) {
+    log.debug('* There is at least one document type already on the DB.')
+    await updateCustomForm()
+  }
+  if (community || customForm) throw new DatabaseNotEmpty('Skipping new setup because there is data already in the DB')
   log.debug('--> OK')
 }
 
-async function startSetup () {
+async function create() {
+  log.info('* Creating user profile custom form...')
+  let profileSchema = await dbCustomForm.create(userProfileCustomForm)
+  log.info('* Creating community...')
+  communityData.userProfileSchema = profileSchema._id
+  await dbCommunity.create(communityData)
+  log.info('--> OK')
+  log.info('* Creating document type custom form...')
+  await dbCustomForm.create(projectCustomForm)
+  log.info('--> OK')
+  log.info('--> Setup finished!')
+}
+
+async function updateCustomForm() {
+  log.info('* Fetching user profile form...')
+  let userProfileExistingCustomForm = await CustomForm.findOne({slug: userProfileCustomForm.slug})
+  if(!userProfileExistingCustomForm) throw new StopSetup('Critical error while fetching user profile custom form')
+  log.info('* Updating user profile form...')
+  userProfileExistingCustomForm.fields = userProfileCustomForm.fields
+  log.info('* Saving user profile form...')
+  await userProfileExistingCustomForm.save()
+  log.info('* Fetching user profile form...')
+  let projectExistingCustomForm = await CustomForm.findOne({slug: projectCustomForm.slug})
+  if(!projectExistingCustomForm) throw new StopSetup('Critical error while fetching user profile custom form')
+  log.info('* Updating user profile form...')
+  projectExistingCustomForm.fields = projectCustomForm.fields
+  log.info('* Saving user profile form...')
+  await projectExistingCustomForm.save()
+  log.debug('--> updateCustomForm OK')
+}
+
+async function startSetup() {
   try {
     await checkDB()
-    log.info('* Creating user profile custom form...')
-    let profileSchema = await dbCustomForm.create(userProfileCustomForm)
-    log.info('* Creating community...')
-    communityData.userProfileSchema = profileSchema._id
-    await dbCommunity.create(communityData)
-    log.info('--> OK')
-    log.info('* Creating document type custom form...')
-    await dbCustomForm.create(projectCustomForm)
-    log.info('--> OK')
-    log.info('--> Setup finished!')
+    await create()
   } catch (err) {
     log.warn(err.message)
   }
@@ -198,7 +236,7 @@ async function startSetup () {
 
 mongoose.Promise = global.Promise
 
-exports.checkInit = async function checkInit () {
+exports.checkInit = async function checkInit() {
   try {
     // await checkEnv()
     log.info(`Seeding mongodb with init values`)

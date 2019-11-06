@@ -1,5 +1,10 @@
 # Changelog
 
+**1.6.0**
+
+- Ahora al iniciar el servidor, hay una nueva rutina que actualiza los fields de un custom form, por si hay nuevos campos que ir agregando en el tiempo. En este caso, se agrego `customVideoId` que seria la url que funciona con el reproductor para el servidor de streaming para la HCDN. 
+- En cambio, `youtubeId` aun se mantendra por razones de compatibilidad con la BD.
+
 **1.5.0**
 
 - Ahora `GET /documents` cambio su forma de obtener y paginar los resultados que obtiene. En coordinacion con el front, ahora los resultados se paginan, y se fuerza el orden de que en primer lugar aparecen las propuestas abiertas, y luego, las cerradas. Se descarta entonces el uso de "mongoose-paginate" para este caso, lamentablemente el paquete limita mucho llevar a cabo queries complejas.
