@@ -200,3 +200,7 @@ This will be the build that will be served by the server on `/docs`
 ```
 npm run docs:build
 ``` -->
+
+#### Note for production build
+
+- Be sure to use `"keycloak-connect": "^4.8.3"` in `package.json`
