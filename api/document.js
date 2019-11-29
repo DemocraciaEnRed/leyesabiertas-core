@@ -13,6 +13,7 @@ const errors = require('../services/errors')
 const notifier = require('../services/notifier')
 const middlewares = require('../services/middlewares')
 const utils = require('../services/utils')
+const log = require('../services/logger')
 
 /**
  * @apiDefine admin User access only
@@ -233,6 +234,13 @@ router.route('/:id')
       try {
         // Get the document
         const document = await Document.get({ _id: req.params.id })
+        console.log('==================')
+        console.log('document in DB')
+        console.log(document)
+        console.log('==================')
+        console.log('req.body')
+        console.log(req.body)
+        console.log('==================')
         if (!document) {
           throw errors.ErrNotFound('Document not found')
         }
@@ -250,6 +258,9 @@ router.route('/:id')
         }
         // Retrieve the version of the customForm that the document follows
         const customForm = await CustomForm.get({ _id: document.customForm })
+        console.log('const customForm = await CustomForm.get({ _id: document.customForm })')
+        console.log('==================')
+        console.log(customForm)
         // Check if this will imply a new document version
         if (req.body.contributions && req.body.contributions.length > 0) {
           // Set the data to save
