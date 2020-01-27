@@ -140,20 +140,36 @@ router.route('/my-documents')
     async (req, res, next) => {
       try {
         let results = null
+        let sort = null
+        if (req.query) {
+          sort = {}
+          sort.createdAt = req.query.created === 'ASC' ? 1 : -1
+        }
+        let paginate = {
+          limit: req.query.limit || 10,
+          page: req.query.page || 1
+        }
         // If it is null, just show the published documents
         results = await Document.list({ author: req.session.user._id }, {
           limit: req.query.limit,
-          page: req.query.page
+          page: req.query.page,
+          sort: sort
         })
         let today = new Date()
         results.docs.forEach((doc) => {
           doc.closed = today > new Date(doc.currentVersion.content.closingDate)
         })
+        let auxOne = parseInt(results.docs.length / paginate.limit)
+        let auxTwo = results.total % paginate.limit
+        if (auxTwo) {
+          auxOne++
+        }
         res.status(status.OK).json({
           results: results.docs,
           pagination: {
             count: results.total,
             page: results.page,
+            pages: auxOne,
             limit: results.limit
           }
         })
