@@ -14,7 +14,8 @@ exports.sendCommentNotification = async (notificationType, commentId) => {
   }).catch((error) => {
     log.error('ERROR Sending Email', {
       meta: payload,
-      message: error.message
+      message: error.message,
+      data: error.response.data
     })
   })
 }
@@ -29,7 +30,8 @@ exports.sendNewCommentNotification = async (notificationType, commentId) => {
   }).catch((error) => {
     log.error('ERROR Sending Email', {
       meta: payload,
-      message: error.message
+      message: error.message,
+      data: error.response.data
     })
   })
 }
@@ -44,7 +46,8 @@ exports.setDocumentClosesNotification = async (documentId, closingDate) => {
   }).catch((error) => {
     log.error('ERROR Setting document closes event', {
       error: error.message,
-      meta: payload
+      meta: payload,
+      data: error.response.data
     })
   })
 }
