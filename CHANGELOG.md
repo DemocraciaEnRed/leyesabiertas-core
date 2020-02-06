@@ -1,5 +1,19 @@
 # Changelog
 
+**1.7.1**
+
+- Mejorado como se loguean los errores del notifier
+
+_Compatible con leyesabiertas-notifier:1.7.1 y leyesabiertas-web:1.7.1_
+
+
+**1.7.0**
+
+- Agregado sort querystring y otros controles del paginado en /documents/my-documents
+
+_Compatible con leyesabiertas-notifier:1.5.0 y leyesabiertas-web:1.7.0_
+
+
 **1.6.0**
 
 - Ahora al iniciar el servidor, hay una nueva rutina que actualiza los fields de un custom form, por si hay nuevos campos que ir agregando en el tiempo. En este caso, se agrego `customVideoId` que seria la url que funciona con el reproductor para el servidor de streaming para la HCDN. 
