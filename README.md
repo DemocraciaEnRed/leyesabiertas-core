@@ -1,7 +1,9 @@
 ![Header](docs/header-doc.png)
 
 # Leyes abiertas - Backend 
+
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=DemocraciaEnRed_leyesabiertas-core&metric=alert_status)](https://sonarcloud.io/dashboard?id=DemocraciaEnRed_leyesabiertas-core)
+[![GitHub license](https://img.shields.io/github/license/DemocraciaEnRed/leyesabiertas-core)](https://github.com/DemocraciaEnRed/leyesabiertas-core/blob/master/LICENSE)
 
 Este es uno de los cuatros modulos que se requieren descargar, hacer setup e instalar cada uno de los repositorios para poder utilizar Leyes Abiertas.
 Para saber mas del conjunto de modulos que compone leyes abiertas, hace [click aqui](https://github.com/DemocraciaEnRed/leyesabiertas) 
