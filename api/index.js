@@ -29,6 +29,7 @@ routerV1.use('/community', require('../api/community'))
 routerV1.use('/custom-forms', require('../api/customForm'))
 routerV1.use('/documents', require('../api/document'))
 routerV1.use('/users', require('../api/user'))
+routerV1.use('/document-tags', require('../api/documentTag'))
 
 // ===============================
 // Resource services
