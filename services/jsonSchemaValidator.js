@@ -13,6 +13,7 @@ const isSchemaValid = (schema) => {
 }
 
 const isDataValid = (docTypeFields, data) => {
+  // ajv: Another JSON Schema Validator - https://www.npmjs.com/package/ajv
   let validate = ajv.compile({
     properties: docTypeFields.properties,
     additionalProperties: false,

@@ -169,6 +169,12 @@ let projectCustomForm = {
           }
         ],
         'title': 'Closure of the document'
+      },
+      'tags': {
+        'title': "Project's tags",
+        'type' : "array",
+        'uniqueItems': true,
+        'items': { 'type': "string" }
       }
     }
   },

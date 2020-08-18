@@ -46,14 +46,17 @@ exports.loadIfNotExists = function loadIfNotExists (query) {
     'Agricultura, ganadería, minería y pesca (o actividades primarias)'
   ]
 
-  return DocumentTag.insertMany(categorías.map(c => { return { name: c } }))
-    .then(() => {
+  return DocumentTag.deleteMany({}).then(() =>
+    DocumentTag.insertMany(
+      categorías.map(c => { return { name: c } })
+    ).then(() => {
       console.log("DocumentTags loaded")
       return this.getAll()
     }).catch((error) => {
       console.log("DocumentTags load error")
       console.log(error)
-    });
+    })
+  )
 }
 
 /*exports.create = function create (data) {
