@@ -59,6 +59,12 @@ let userProfileCustomForm = {
       'province': {
         'type': 'string',
         'title': "User's province"
+      },
+      'tags': {
+        'title': "Project's tags",
+        'type' : "array",
+        'uniqueItems': true,
+        'items': { 'type': "string" }
       }
     }
   },
