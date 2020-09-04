@@ -75,9 +75,12 @@ router.route('/')
           const queryTagId = req.query.tag
           // validamos datos de la query, que sea un id de mongo
           if (/^[a-f0-9]{24}$/.test(queryTagId))
-            results = results.filter((doc) => {
-              return doc.currentVersion.content.tags.includes(queryTagId)
-            })
+            results = results.filter(doc =>
+              doc.currentVersion.content.tags ?
+                doc.currentVersion.content.tags.includes(queryTagId)
+              :
+                false
+            )
         }
         let auxOne = parseInt(results.length / paginate.limit)
         let auxTwo = results.length % paginate.limit
