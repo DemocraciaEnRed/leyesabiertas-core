@@ -71,6 +71,14 @@ router.route('/')
           //   return (x.closed === y.closed) ? 0 : x.closed ? 1 : -1
           // })
         }
+        if (req.query.tag && req.query.tag !== 'null') {
+          const queryTagId = req.query.tag
+          // validamos datos de la query, que sea un id de mongo
+          if (/^[a-f0-9]{24}$/.test(queryTagId))
+            results = results.filter((doc) => {
+              return doc.currentVersion.content.tags.includes(queryTagId)
+            })
+        }
         let auxOne = parseInt(results.length / paginate.limit)
         let auxTwo = results.length % paginate.limit
         if (auxTwo) {
