@@ -42,6 +42,8 @@ router.route('/')
     async (req, res, next) => {
       try {
         const updatedUser = await User.update(req.session.user._id, req.body)
+        // actualizamos el usuario de la sesión
+        req.session.user = updatedUser
         res.status(status.OK).json(updatedUser)
       } catch (err) {
         next(err)
