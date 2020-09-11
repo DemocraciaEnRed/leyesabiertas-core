@@ -13,6 +13,7 @@ const errors = require('../services/errors')
 const notifier = require('../services/notifier')
 const middlewares = require('../services/middlewares')
 const utils = require('../services/utils')
+const json2xls = require('json2xls')
 
 /**
  * @apiDefine admin User access only
@@ -619,5 +620,92 @@ router.route('/:id/comments/:idComment/reply')
       }
     }
   )
+
+
+router.use(json2xls.middleware)
+
+function escapeTxt (text) {
+  if (!text) return ''
+  text += ''
+  return text.replace(/"/g, '\'').replace(/\r/g, '').replace(/\n/g, '')
+}
+function formatXlsDate (date){
+  let isoStr = date.toISOString() // '2020-08-28T15:30:07.185Z'
+  let mainParts = isoStr.split('T') // [ 2020-08-28 , 15:30:07.185Z ]
+  let timeParts = mainParts[1].split('.') // [ 15:30:07 , 185Z ]
+
+  return mainParts[0] + ' ' +  timeParts[0] // '2020-08-28 15:30:07'
+}
+router.route('/my-documents/export-xls')
+  /**
+     * @api {get} /my-documents/export-xls Excel
+     * @apiName getDocumentsExcel
+     * @apiGroup Document
+     */
+  .get(
+    auth.keycloak.protect('realm:accountable'),
+    async (req, res, next) => {
+      try {
+        const today = new Date()
+        const exportRows = []
+
+        const documents = await Document.retrieve({ author: req.session.user._id }, { createdAt: -1})
+        console.log(`Exporting ${documents.length} documents to xls`)
+
+        // Using async/await with a forEach loop - https://stackoverflow.com/questions/37576685/using-async-await-with-a-foreach-loop
+        await Promise.all(documents.map(async (doc) => {
+          const currentContent = doc.currentVersion.content
+          const contributions = doc.currentVersion.contributions
+          const docClosed = today > new Date(currentContent.closingDate)
+
+          const documentData = {
+            'Fecha creación': formatXlsDate(doc.createdAt),
+            'Título': escapeTxt(currentContent.title),
+            'Publicado': doc.published ? 'Sí' : 'No',
+            'Cerrado': docClosed ? 'Sí' : 'No',
+            'Cantidad Aportes': doc.commentsCount
+          }
+
+          let comments = await Comment.getAll({ document: doc._id }, false)
+
+          comments.forEach(com => {
+            let isContribution = com.field == 'articles'
+
+            let commentData = {
+              'Usuario Nombre': escapeTxt(com.user.fullname),
+              'Usuario Email': com.user.email || 'Sin email',
+              'Fecha Comentario': '',
+              'Comentario': '',
+              'Respuesta': '',
+              'Fecha Contribución': '',
+              'Contribución': '',
+              'Resuelto': '',
+            }
+
+            if (isContribution){
+              Object.assign(commentData, {
+                'Fecha Contribución': formatXlsDate(com.createdAt),
+                'Contribución': escapeTxt(com.content.trim()),
+                'Resuelto': com.resolved ? 'Sí' : 'No',
+              })
+            }else{
+              Object.assign(commentData, {
+                'Fecha Comentario': formatXlsDate(com.createdAt),
+                'Comentario': escapeTxt(com.content.trim()),
+                'Respuesta': escapeTxt(com.reply.trim()),
+              })
+            }
+
+            exportRows.push(Object.assign({}, documentData, commentData))
+
+          })//end comments.forEach
+        }))//end await Promise.all
+
+        console.log(`Sending xls with ${exportRows.length} rows`)
+        res.xls('', exportRows);
+      } catch (err) {
+        next(err)
+      }
+    })
 
 module.exports = router
