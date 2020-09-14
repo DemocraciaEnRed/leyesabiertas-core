@@ -624,17 +624,26 @@ router.route('/:id/comments/:idComment/reply')
 
 router.use(json2xls.middleware)
 
+
 function escapeTxt (text) {
   if (!text) return ''
-  text += ''
-  return text.replace(/"/g, '\'').replace(/\r/g, '').replace(/\n/g, '')
+
+  return text
+    .toString()
+    .replace(/"/g, '\'')
+    .replace(/\r/g, '')
+    .replace(/\n/g, '')
+    .trim()
 }
+
 function formatXlsDate (date){
+  if (!date) return ''
+
   let isoStr = date.toISOString() // '2020-08-28T15:30:07.185Z'
   let mainParts = isoStr.split('T') // [ 2020-08-28 , 15:30:07.185Z ]
   let timeParts = mainParts[1].split('.') // [ 15:30:07 , 185Z ]
 
-  return mainParts[0] + ' ' +  timeParts[0] // '2020-08-28 15:30:07'
+  return `${mainParts[0]} ${timeParts[0]}`.trim() // '2020-08-28 15:30:07'
 }
 router.route('/my-documents/export-xls')
   /**
@@ -685,14 +694,14 @@ router.route('/my-documents/export-xls')
             if (isContribution){
               Object.assign(commentData, {
                 'Fecha Contribución': formatXlsDate(com.createdAt),
-                'Contribución': escapeTxt(com.content.trim()),
+                'Contribución': escapeTxt(com.content),
                 'Resuelto': com.resolved ? 'Sí' : 'No',
               })
             }else{
               Object.assign(commentData, {
                 'Fecha Comentario': formatXlsDate(com.createdAt),
-                'Comentario': escapeTxt(com.content.trim()),
-                'Respuesta': escapeTxt(com.reply.trim()),
+                'Comentario': escapeTxt(com.content),
+                'Respuesta': escapeTxt(com.reply),
               })
             }
 
