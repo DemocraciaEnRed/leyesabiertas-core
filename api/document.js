@@ -672,7 +672,7 @@ router.route('/my-documents/export-xls')
             'Título': escapeTxt(currentContent.title),
             'Publicado': doc.published ? 'Sí' : 'No',
             'Cerrado': docClosed ? 'Sí' : 'No',
-            'Cantidad Aportes': doc.commentsCount
+            'Comentarios totales': doc.commentsCount
           }
 
           let comments = await Comment.getAll({ document: doc._id }, false)
@@ -686,15 +686,15 @@ router.route('/my-documents/export-xls')
               'Fecha Comentario': '',
               'Comentario': '',
               'Respuesta': '',
-              'Fecha Contribución': '',
-              'Contribución': '',
+              'Fecha Aporte': '',
+              'Aporte': '',
               'Resuelto': '',
             }
 
             if (isContribution){
               Object.assign(commentData, {
-                'Fecha Contribución': formatXlsDate(com.createdAt),
-                'Contribución': escapeTxt(com.content),
+                'Fecha Aporte': formatXlsDate(com.createdAt),
+                'Aporte': escapeTxt(com.content),
                 'Resuelto': com.resolved ? 'Sí' : 'No',
               })
             }else{
