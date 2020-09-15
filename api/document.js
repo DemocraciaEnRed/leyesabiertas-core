@@ -675,7 +675,7 @@ router.route('/my-documents/export-xls')
             'Comentarios totales': doc.commentsCount
           }
 
-          let comments = await Comment.getAll({ document: doc._id }, false)
+          let comments = await Comment.getAll({ document: doc._id }, true)
 
           comments.forEach(com => {
             let isContribution = com.field == 'articles'
