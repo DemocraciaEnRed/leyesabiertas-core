@@ -61,10 +61,21 @@ let userProfileCustomForm = {
         'title': "User's province"
       },
       'tags': {
-        'title': "Project's tags",
+        'title': "User's tags",
         'type' : "array",
         'uniqueItems': true,
         'items': { 'type': "string" }
+      },
+      'tagsNotification': {
+        'title': "User's tags notification setting",
+        'anyof': [
+          {
+            'type': 'null'
+          },
+          {
+            'type': 'boolean'
+          }
+        ]
       }
     }
   },
