@@ -7,6 +7,7 @@ const Document = new mongoose.Schema({
   customForm: { type: mongoose.Schema.Types.ObjectId, ref: 'CustomForm' },
   currentVersion: { type: mongoose.Schema.Types.ObjectId, ref: 'DocumentVersion' },
   published: { type: Boolean, required: true, default: false },
+  publishedMailSent: { type: Boolean },
   commentsCount: { type: Number, default: 0 }
 }, {
   timestamps: true
