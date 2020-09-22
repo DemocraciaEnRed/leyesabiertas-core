@@ -192,6 +192,17 @@ let projectCustomForm = {
         'type' : "array",
         'uniqueItems': true,
         'items': { 'type': "string" }
+      },
+      'sendTagsNotification': {
+        'anyof': [
+          {
+            'type': 'null'
+          },
+          {
+            'type': 'boolean'
+          }
+        ],
+        'title': "Project's tags notification settings"
       }
     }
   },
