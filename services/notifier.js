@@ -47,7 +47,7 @@ exports.setDocumentClosesNotification = async (documentId, closingDate) => {
     log.error('ERROR Setting document closes event', {
       error: error.message,
       meta: payload,
-      data: error.response.data
+      data: error.response && error.response.data
     })
   })
 }

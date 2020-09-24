@@ -169,7 +169,8 @@ router.route('/my-documents')
         })
         let today = new Date()
         results.docs.forEach((doc) => {
-          doc.closed = today > new Date(doc.currentVersion.content.closingDate)
+          if (doc.currentVersion && doc.currentVersion.content)
+            doc.closed = today > new Date(doc.currentVersion.content.closingDate)
         })
         let auxOne = parseInt(results.docs.length / paginate.limit)
         let auxTwo = results.total % paginate.limit
