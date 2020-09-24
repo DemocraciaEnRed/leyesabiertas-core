@@ -314,8 +314,8 @@ router.route('/:id')
         if (req.body.content && req.body.content.closingDate) {
           await notifier.setDocumentClosesNotification(updatedDocument.id, req.body.content.closingDate)
         }
-        
-        if (!document.publishedMailSent && updatedDocument.published && req.body.content.sendTagsNotification){
+
+        if (!document.publishedMailSent && updatedDocument.published && req.body.content && req.body.content.sendTagsNotification){
           console.log('MANDANDOO')
           await notifier.sendDocumentPublishedNotification(updatedDocument.id)
           updatedDocument = await Document.update(updatedDocument.id, {publishedMailSent: true})
