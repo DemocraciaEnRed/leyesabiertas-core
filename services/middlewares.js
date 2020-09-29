@@ -81,7 +81,9 @@ exports.bindUserToSession = async (req, res, next) => {
             email: auth.getEmail(req),
             roles: auth.getRoles(req),
             avatar: defaultImage,
-            fields: null
+            fields: {
+              tagsNotification: true
+            }
           })
           // Bind to session
           req.session.user = userCreated
