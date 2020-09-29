@@ -252,9 +252,9 @@ async function updateCustomForm() {
   log.info('* Fetching user profile form...')
   let projectExistingCustomForm = await CustomForm.findOne({slug: projectCustomForm.slug})
   if(!projectExistingCustomForm) throw new StopSetup('Critical error while fetching user profile custom form')
-  log.info('* Updating user profile form...')
+  log.info('* Updating project custom form...')
   projectExistingCustomForm.fields = projectCustomForm.fields
-  log.info('* Saving user profile form...')
+  log.info('* Saving project custom form...')
   await projectExistingCustomForm.save()
   log.debug('--> updateCustomForm OK')
 }
