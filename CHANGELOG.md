@@ -21,7 +21,7 @@ Listado de cambios hasta el momento:
 Compatible con:
 * `leyesabiertas-web:1.8.0`
 * `leyesabiertas-notifier:1.8.0`
-* `leyesabiertas-keycloak:1.0.8`
+* `leyesabiertas-keycloak:1.8.0`
 
 
 **1.7.1**
