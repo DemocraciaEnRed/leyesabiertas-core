@@ -37,7 +37,7 @@
     "json2xls": "^0.1.2",
     "keycloak-connect": "^4.8.3",
     "lodash": "^4.17.11",
-    "mongoose": "~5.5.13",
+    "mongoose": "~5.7.5",
     "mongoose-immutable": "0.0.2",
     "mongoose-paginate": "^5.0.3",
     "mongoose-version": "^1.1.0",
