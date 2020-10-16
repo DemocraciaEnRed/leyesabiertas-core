@@ -684,37 +684,46 @@ router.route('/my-documents/export-xls')
 
           let comments = await Comment.getAll({ document: doc._id }, true)
 
-          comments.forEach(com => {
-            let isContribution = com.field == 'articles'
+          let commentData = {
+            'Usuario Nombre': '',
+            'Usuario Email': '',
+            'Fecha Comentario': '',
+            'Comentario': '',
+            'Respuesta': '',
+            'Fecha Aporte': '',
+            'Aporte': '',
+            'Resuelto': '',
+          }
 
-            let commentData = {
-              'Usuario Nombre': escapeTxt(com.user.fullname),
-              'Usuario Email': com.user.email || 'Sin email',
-              'Fecha Comentario': '',
-              'Comentario': '',
-              'Respuesta': '',
-              'Fecha Aporte': '',
-              'Aporte': '',
-              'Resuelto': '',
-            }
-
-            if (isContribution){
-              Object.assign(commentData, {
-                'Fecha Aporte': formatXlsDate(com.createdAt),
-                'Aporte': escapeTxt(com.content),
-                'Resuelto': com.resolved ? 'Sí' : 'No',
-              })
-            }else{
-              Object.assign(commentData, {
-                'Fecha Comentario': formatXlsDate(com.createdAt),
-                'Comentario': escapeTxt(com.content),
-                'Respuesta': escapeTxt(com.reply),
-              })
-            }
-
+          if (!comments || !comments.length)
             exportRows.push(Object.assign({}, documentData, commentData))
+          else
+            comments.forEach(com => {
+              let isContribution = com.field == 'articles'
 
-          })//end comments.forEach
+              Object.assign(commentData, {
+                'Usuario Nombre': escapeTxt(com.user.fullname),
+                'Usuario Email': com.user.email || 'Sin email',
+              })
+
+              if (isContribution){
+                Object.assign(commentData, {
+                  'Fecha Aporte': formatXlsDate(com.createdAt),
+                  'Aporte': escapeTxt(com.content),
+                  'Resuelto': com.resolved ? 'Sí' : 'No',
+                })
+              }else{
+                Object.assign(commentData, {
+                  'Fecha Comentario': formatXlsDate(com.createdAt),
+                  'Comentario': escapeTxt(com.content),
+                  'Respuesta': escapeTxt(com.reply),
+                })
+              }
+
+              exportRows.push(Object.assign({}, documentData, commentData))
+
+            })//end comments.forEach
+          //end if
         }))//end await Promise.all
 
         console.log(`Sending xls with ${exportRows.length} rows`)
