@@ -132,7 +132,7 @@ router.route('/')
         }
         const newDocument = await Document.create(req.body, customForm)
         // Set closing notification agenda
-        await notifier.setDocumentClosesNotification(newDocument._id, req.body.content.closingDate)
+        notifier.setDocumentClosesNotification(newDocument._id, req.body.content.closingDate)
         // Send
         res.status(status.CREATED).send(newDocument)
       } catch (err) {
@@ -312,12 +312,12 @@ router.route('/:id')
         let updatedDocument = await Document.update(req.params.id, newDataDocument)
         // Set document closes event
         if (req.body.content && req.body.content.closingDate) {
-          await notifier.setDocumentClosesNotification(updatedDocument.id, req.body.content.closingDate)
+          notifier.setDocumentClosesNotification(updatedDocument.id, req.body.content.closingDate)
         }
 
         if (!document.publishedMailSent && updatedDocument.published && req.body.content && req.body.content.sendTagsNotification){
           console.log('MANDANDOO')
-          await notifier.sendDocumentPublishedNotification(updatedDocument.id)
+          notifier.sendDocumentPublishedNotification(updatedDocument.id)
           updatedDocument = await Document.update(updatedDocument.id, {publishedMailSent: true})
         }
         res.status(status.OK).json(updatedDocument)
