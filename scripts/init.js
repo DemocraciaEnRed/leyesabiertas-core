@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const Community = require('../models/community')
 const dbCommunity = require('../db-api/community')
 const CustomForm = require('../models/customForm')
+const User = require('../models/user')
 const dbCustomForm = require('../db-api/customForm')
 const config = require('../config')
 const log = require('../services/logger')
@@ -217,6 +218,15 @@ class DatabaseNotEmpty extends Error { }
 class StopSetup extends Error { }
 
 async function checkDB() {
+  log.debug('* Checking if there are users without tagsNotification setting')
+  let users = await User.find({ 'fields.tagsNotification': null })
+  if (users && users.length){
+    log.debug(`*- Found ${users.length} users. Updating all.`)
+    await User.updateMany({ 'fields.tagsNotification': null }, {$set: {'fields.tagsNotification': true}})
+    log.debug('--> OK updating users')
+  }else
+    log.debug('*- No users found. Continuing.')
+
   log.debug('* Checking if database has data on it')
   let community = await Community.findOne({})
   let customForm = await CustomForm.findOne({})
@@ -225,7 +235,7 @@ async function checkDB() {
     await updateCustomForm()
   }
   if (community || customForm) throw new DatabaseNotEmpty('Skipping new setup because there is data already in the DB')
-  log.debug('--> OK')
+  log.debug('--> OK checking DB')
 }
 
 async function create() {
