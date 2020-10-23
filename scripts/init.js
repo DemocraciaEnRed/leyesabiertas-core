@@ -222,6 +222,7 @@ async function checkDB() {
   let users = await User.find({ 'fields.tagsNotification': null })
   if (users && users.length){
     log.debug(`*- Found ${users.length} users. Updating all.`)
+    await User.updateMany({ fields: null }, {$set: {fields: { tagsNotification: true }}})
     await User.updateMany({ 'fields.tagsNotification': null }, {$set: {'fields.tagsNotification': true}})
     log.debug('--> OK updating users')
   }else
