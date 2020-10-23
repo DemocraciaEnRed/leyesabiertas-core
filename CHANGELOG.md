@@ -1,5 +1,18 @@
 # Changelog
 
+**1.8.1**
+
+
+- Se quito async/await de las llamadas al notifier desde la api, para que
+- Fix: Ahora los proyectos sin comentarios tambien aparecen en el excel de proyectos
+- Por defecto los usuarios recibbirian notificaciones en su correo electronico
+- Los usuarios con la opcion de "recibir notificaciones" en undefined (viejos) ahora por defecto se les asigna a true.
+
+Compatible con:
+* `leyesabiertas-web:1.8.1`
+* `leyesabiertas-notifier:1.8.0`
+* `leyesabiertas-keycloak:1.8.0`
+
 **1.8.0**
 
 Listado de cambios hasta el momento:
@@ -21,7 +34,7 @@ Listado de cambios hasta el momento:
 Compatible con:
 * `leyesabiertas-web:1.8.0`
 * `leyesabiertas-notifier:1.8.0`
-* `leyesabiertas-keycloak:1.0.8`
+* `leyesabiertas-keycloak:1.8.0`
 
 
 **1.7.1**
