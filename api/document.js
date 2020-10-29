@@ -14,6 +14,9 @@ const notifier = require('../services/notifier')
 const middlewares = require('../services/middlewares')
 const utils = require('../services/utils')
 const json2xls = require('json2xls')
+const svgCaptcha = require('svg-captcha');
+const crypto = require('crypto');
+const log = require('../services/logger')
 
 /**
  * @apiDefine admin User access only
@@ -190,6 +193,23 @@ router.route('/my-documents')
         next(err)
       }
     })
+
+router.route('/captcha-data').get(
+  async (req, res, next) => {
+    try {
+      // https://www.npmjs.com/package/svg-captcha
+      var captcha = svgCaptcha.create();
+
+      const hash = crypto.createHash('sha256').update(captcha.text.toLowerCase()).digest('hex')
+
+      log.info('Returning captcha data...')
+      res.status(200).json({img: captcha.data, token: hash});
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  }
+)
 
 router.route('/:id')
   /**
@@ -628,6 +648,33 @@ router.route('/:id/comments/:idComment/reply')
     }
   )
 
+router.route('/:id/apoyar').post(
+  auth.keycloak.protect(),
+  middlewares.checkId,
+  async (req, res, next) => {
+    try {
+    } catch (err) {
+      next(err)
+    }
+  }
+)
+router.route('/:id/apoyar-anon').post(
+  middlewares.checkId,
+  async (req, res, next) => {
+    try {
+      const { nombre_apellido, email, captcha, token } = req.body
+      const captchaHash = crypto.createHash('sha256').update(captcha.toLowerCase()).digest('hex')
+
+      if (!captcha || captchaHash != token.toLowerCase())
+        return res.status(500).json({error: 'Texto de imagen incorrecto'})
+
+      res.status(status.OK).json({msg: 'Captcha válido'})
+
+    } catch (err) {
+      next(err)
+    }
+  }
+)
 
 router.use(json2xls.middleware)
 
