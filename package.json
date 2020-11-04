@@ -47,6 +47,7 @@
     "react-dom": "^16.8.6",
     "svg-captcha": "^1.4.0",
     "timeago.js": "^4.0.0-beta.2",
+    "uuid": "^8.3.1",
     "winston": "^2.4.4",
     "winston-mongodb": "^3.0.2"
   },
