@@ -661,6 +661,10 @@ router.route('/:id/apoyar').post(
   middlewares.checkId,
   async (req, res, next) => {
     try {
+      let documentId = req.params.id
+      let userId = req.session.user._id
+      await Document.apoyar(documentId, userId)
+      res.status(status.OK).send()
     } catch (err) {
       next(err)
     }
