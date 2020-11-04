@@ -59,6 +59,8 @@ router.route('/')
         let today = new Date()
         results.forEach((doc) => {
           doc.closed = today > new Date(doc.currentVersion.content.closingDate)
+          doc.apoyosCount = doc.apoyos && doc.apoyos.length || 0
+          delete doc.apoyos
         })
         if (req.query.closed !== 'null') {
           results = results.filter((doc) => {
