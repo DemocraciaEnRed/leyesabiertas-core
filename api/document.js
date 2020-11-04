@@ -261,6 +261,14 @@ router.route('/:id')
           payload.contributorsCount = contributors
           payload.contextualCommentsCount = contextualCommentsCount
         }
+
+        payload.document.userIsApoyado = req.session.user &&
+          document.apoyos &&
+          document.apoyos.find(apoyo => apoyo.userId.toString() == req.session.user._id) &&
+          true || false
+        payload.document.apoyosCount = document.apoyos && document.apoyos.length || 0
+        delete payload.document.apoyos
+
         // Deliver the document
         res.status(status.OK).json(payload)
       } catch (err) {
