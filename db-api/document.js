@@ -135,12 +135,20 @@ exports.remove = function remove (id) {
     })
 }
 
-// Update document
 exports.apoyar = async function apoyar (documentId, userId) {
   // primero vemos si ya apoyó
   let documentApoyado = await Document.findOne({ _id: documentId, 'apoyos.userId': userId })
   if (!documentApoyado)
     return Document.updateOne({_id: documentId}, {'$push': {apoyos: {userId: userId}}})
+  else
+    return documentApoyado
+}
+
+exports.apoyarAnon = async function apoyarAnon(documentId, apoyoData) {
+  // primero vemos si ya apoyó
+  let documentApoyado = await Document.findOne({ _id: documentId, 'apoyos.email': apoyoData.email })
+  if (!documentApoyado)
+    return Document.updateOne({_id: documentId}, {'$push': {apoyos: apoyoData}})
   else
     return documentApoyado
 }

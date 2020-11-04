@@ -7,6 +7,7 @@ const Community = require('../db-api/community')
 const Comment = require('../db-api/comment')
 const CustomForm = require('../db-api/customForm')
 const Like = require('../db-api/like')
+const ApoyoToken = require('../db-api/apoyoToken')
 const router = express.Router()
 const auth = require('../services/auth')
 const errors = require('../services/errors')
@@ -17,6 +18,7 @@ const json2xls = require('json2xls')
 const svgCaptcha = require('svg-captcha');
 const crypto = require('crypto');
 const log = require('../services/logger')
+const { v4: uuidv4 } = require('uuid');
 
 /**
  * @apiDefine admin User access only
@@ -674,13 +676,44 @@ router.route('/:id/apoyar-anon').post(
   middlewares.checkId,
   async (req, res, next) => {
     try {
+      let documentId = req.params.id
       const { nombre_apellido, email, captcha, token } = req.body
-      const captchaHash = crypto.createHash('sha256').update(captcha.toLowerCase()).digest('hex')
 
+      // comprobamos captcha
+      const captchaHash = crypto.createHash('sha256').update(captcha.toLowerCase()).digest('hex')
       if (!captcha || captchaHash != token.toLowerCase())
         return res.status(500).json({error: 'Texto de imagen incorrecto'})
+      log.info('Captcha válido');
 
-      res.status(status.OK).json({msg: 'Captcha válido'})
+      // comprobamos si ese email no tiene un apoyo ya efectuado
+      const hasApoyado = await Document.get({ _id: documentId, 'apoyos.email': email })
+      if (hasApoyado)
+        return res.status(500).json({error: 'Usted ya ha apoyado el proyecto'})
+
+      // comprobamos si ya hay un apoyo en proceso de validación
+      const existingApoyoToken = await ApoyoToken.getByEmail(email)
+      if (existingApoyoToken){
+        let firstDate = existingApoyoToken.createdAt,
+          secondDate = new Date(),
+          timeDifference = Math.abs(secondDate.getTime() - firstDate.getTime());
+        let instevaloMs = 1000 *60 *60 *48; //48 horas
+        if (timeDifference < instevaloMs)
+          return res.status(500).json({error: 'Ya se envió un mensaje de validación a este mail'})
+        else
+          await existingApoyoToken.remove()
+      }
+
+      // creamos token para validación de apoyo
+      const uuid = uuidv4();
+      await ApoyoToken.create({email, token: uuid, nombreApellido: nombre_apellido})
+
+      // mandamos mail de validación
+      
+
+      // efectuamos apoyo
+      await Document.apoyarAnon(documentId, {email, nombreApellido: nombre_apellido})
+
+      res.status(status.OK).send()
 
     } catch (err) {
       next(err)
