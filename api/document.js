@@ -266,7 +266,7 @@ router.route('/:id')
 
         payload.document.userIsApoyado = req.session.user &&
           document.apoyos &&
-          document.apoyos.find(apoyo => apoyo.userId.toString() == req.session.user._id) &&
+          document.apoyos.find(apoyo => apoyo.userId && apoyo.userId.toString() == req.session.user._id) &&
           true || false
         payload.document.apoyosCount = document.apoyos && document.apoyos.length || 0
         delete payload.document.apoyos
@@ -708,7 +708,7 @@ router.route('/:id/apoyar-anon').post(
       await ApoyoToken.create({email, token: uuid, nombreApellido: nombre_apellido})
 
       // mandamos mail de validación
-      
+
 
       // efectuamos apoyo
       await Document.apoyarAnon(documentId, {email, nombreApellido: nombre_apellido})
