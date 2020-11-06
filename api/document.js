@@ -736,14 +736,13 @@ router.route('/apoyo-anon-validar/:uuid').get(
           return res.status(500).json({error: 'Apoyo inexistente'})
 
         // efectuamos apoyo
-        const document = await Document.apoyarAnon(apoyo)
+        await Document.apoyarAnon(apoyo)
 
         // borramos apoyoToken
         apoyo.remove()
 
-        // traemos data para mostrar título
-        const currentVersion = await DocumentVersion.get({ _id: document.currentVersion })
-        document.currentVersion = currentVersion
+        // traemos data actualizada
+        const document = await Document.get({ _id: apoyo.document._id })
 
         // borramos apoyos con mails de gente!
         delete document.apoyos

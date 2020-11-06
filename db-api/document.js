@@ -148,7 +148,7 @@ exports.apoyarAnon = async function apoyarAnon(apoyoToken) {
   // primero vemos si ya apoyó
   let documentApoyado = await Document.findOne({ _id: apoyoToken.document._id, 'apoyos.email': apoyoToken.email })
   if (!documentApoyado)
-    return Document.updateOne({_id: apoyoToken.document._id}, {
+    await Document.updateOne({_id: apoyoToken.document._id}, {
       '$push': {
         apoyos: {
           email: apoyoToken.email,
@@ -156,6 +156,4 @@ exports.apoyarAnon = async function apoyarAnon(apoyoToken) {
         }
       }
     })
-  else
-    return documentApoyado
 }
