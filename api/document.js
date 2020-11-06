@@ -678,7 +678,7 @@ router.route('/:id/apoyar-anon').post(
   middlewares.checkId,
   async (req, res, next) => {
     try {
-      let documentId = req.params.id
+      const documentId = req.params.id
       const { nombre_apellido, email, captcha, token } = req.body
 
       // comprobamos captcha
@@ -707,13 +707,15 @@ router.route('/:id/apoyar-anon').post(
 
       // creamos token para validación de apoyo
       const uuid = uuidv4();
-      await ApoyoToken.create({email, token: uuid, nombreApellido: nombre_apellido})
+      const apoyo = await ApoyoToken.create({
+        document: ObjectId(documentId),
+        email,
+        token: uuid,
+        nombreApellido: nombre_apellido
+      })
 
-      // mandamos mail de validación
-
-
-      // efectuamos apoyo
-      await Document.apoyarAnon(documentId, {email, nombreApellido: nombre_apellido})
+      // scheduleamos mail de validación
+      notifier.sendValidarApoyoNotification(documentId, apoyo._id)
 
       res.status(status.OK).send()
 

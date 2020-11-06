@@ -66,3 +66,20 @@ exports.sendDocumentPublishedNotification = (documentId) => {
     })
   })
 }
+
+
+exports.sendValidarApoyoNotification = (documentId, tokenId) => {
+  let payload = {
+    documentId,
+    tokenId
+  }
+  http.post(`${NOTIFIER_URL}/apoyo-validacion`, payload).then((response) => {
+    log.info(response && response.data && response.data.message, payload)
+  }).catch((error) => {
+    log.error('ERROR Sending Email', {
+      meta: payload,
+      message: error.message,
+      data: error.response && error.response.data
+    })
+  })
+}

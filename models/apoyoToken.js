@@ -3,6 +3,7 @@ const mongoosePaginate = require('mongoose-paginate')
 
 // Define `ApoyoToken` Schema
 const ApoyoToken = new mongoose.Schema({
+  document: { type: mongoose.Schema.Types.ObjectId, ref: 'Document' },
   email: { type: String },
   nombreApellido: { type: String },
   token: { type: String },
