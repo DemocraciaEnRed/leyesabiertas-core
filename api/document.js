@@ -725,6 +725,36 @@ router.route('/:id/apoyar-anon').post(
   }
 )
 
+router.route('/apoyo-anon-validar/:uuid').get(
+    async (req, res, next) => {
+      try {
+        const uuid = req.params.uuid
+
+        const apoyo = await ApoyoToken.getByUuid(uuid).populate('document')
+
+        if (!apoyo)
+          return res.status(500).json({error: 'Apoyo inexistente'})
+
+        // efectuamos apoyo
+        const document = await Document.apoyarAnon(apoyo)
+
+        // borramos apoyoToken
+        apoyo.remove()
+
+        // traemos data para mostrar título
+        const currentVersion = await DocumentVersion.get({ _id: document.currentVersion })
+        document.currentVersion = currentVersion
+
+        // borramos apoyos con mails de gente!
+        delete document.apoyos
+
+        res.status(status.OK).json({document})
+      } catch (err) {
+        next(err)
+      }
+    }
+  )
+
 router.use(json2xls.middleware)
 
 

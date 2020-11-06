@@ -144,11 +144,18 @@ exports.apoyar = async function apoyar (documentId, userId) {
     return documentApoyado
 }
 
-exports.apoyarAnon = async function apoyarAnon(documentId, apoyoData) {
+exports.apoyarAnon = async function apoyarAnon(apoyoToken) {
   // primero vemos si ya apoyó
-  let documentApoyado = await Document.findOne({ _id: documentId, 'apoyos.email': apoyoData.email })
+  let documentApoyado = await Document.findOne({ _id: apoyoToken.document._id, 'apoyos.email': apoyoToken.email })
   if (!documentApoyado)
-    return Document.updateOne({_id: documentId}, {'$push': {apoyos: apoyoData}})
+    return Document.updateOne({_id: apoyoToken.document._id}, {
+      '$push': {
+        apoyos: {
+          email: apoyoToken.email,
+          nombreApellido: apoyoToken.nombreApellido
+        }
+      }
+    })
   else
     return documentApoyado
 }

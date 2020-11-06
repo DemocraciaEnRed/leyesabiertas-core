@@ -5,6 +5,10 @@ exports.getByEmail = function get (email) {
   return ApoyoToken.findOne({email})
 }
 
+exports.getByUuid = function get (uuid) {
+  return ApoyoToken.findOne({token: uuid})
+}
+
 exports.getAll = function get (query) {
   return ApoyoToken.find(query)
 }
