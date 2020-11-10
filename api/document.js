@@ -8,6 +8,7 @@ const Comment = require('../db-api/comment')
 const CustomForm = require('../db-api/customForm')
 const Like = require('../db-api/like')
 const ApoyoToken = require('../db-api/apoyoToken')
+const User = require('../db-api/user')
 const router = express.Router()
 const auth = require('../services/auth')
 const errors = require('../services/errors')
@@ -863,5 +864,58 @@ router.route('/my-documents/export-xls')
         next(err)
       }
     })
+
+
+router.route('/my-documents/export-apoyos-xls').get(
+  auth.keycloak.protect('realm:accountable'),
+  async (req, res, next) => {
+    try {
+      const today = new Date()
+      const exportRows = []
+
+      const documents = await Document.retrieve({ author: req.session.user._id }, { createdAt: -1})
+      console.log(`Exporting ${documents.length} documents apoyos to xls`)
+
+      // Using async/await with a forEach loop - https://stackoverflow.com/questions/37576685/using-async-await-with-a-foreach-loop
+      await Promise.all(documents.map(async (doc) => {
+        const currentContent = doc.currentVersion.content
+        const contributions = doc.currentVersion.contributions
+        const docClosed = today > new Date(currentContent.closingDate)
+        const apoyosCount = doc.apoyos && doc.apoyos.length | 0
+        let apoyosMails = []
+
+        if (doc.apoyos)
+          for (const apoyo of doc.apoyos) {
+            let mail = 'sin mail'
+            if (apoyo.email)
+              mail = apoyo.email
+            else if (apoyo.userId) {
+              const user = await User.get({_id: apoyo.userId}, true)
+              if (user && user.email)
+                mail = user.email
+            }
+            apoyosMails.push(mail)
+          }
+
+        const documentData = {
+          'Fecha creación': formatXlsDate(doc.createdAt),
+          'Título': escapeTxt(currentContent.title),
+          'Publicado': doc.published ? 'Sí' : 'No',
+          'Cerrado': docClosed ? 'Sí' : 'No',
+          'Apoyos totales': apoyosCount,
+          'Apoyos mails': escapeTxt(apoyosMails.join(','))
+        }
+
+        exportRows.push(documentData)
+      }))//end await Promise.all
+
+      console.log(`Sending xls with ${exportRows.length} rows`)
+      res.xls('', exportRows);
+    } catch (err) {
+      next(err)
+    }
+  }
+)
+
 
 module.exports = router
