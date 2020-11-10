@@ -692,6 +692,12 @@ router.route('/:id/apoyar-anon').post(
       if (hasApoyado)
         return res.status(500).json({error: 'Usted ya ha apoyado el proyecto'})
 
+      // que siga abierto (nunca se debería llegar acá normalmente)
+      const document = await Document.get({ _id: documentId })
+      const isClosed = new Date() > new Date(document.currentVersion.content.closingDate)
+      if (isClosed)
+        return res.status(500).json({error: 'El proyecto ya finalizó el periodo de aportes'})
+
       // comprobamos si ya hay un apoyo en proceso de validación
       const existingApoyoToken = await ApoyoToken.getByEmail(email)
       if (existingApoyoToken){
