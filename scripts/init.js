@@ -3,6 +3,7 @@ const Community = require('../models/community')
 const dbCommunity = require('../db-api/community')
 const CustomForm = require('../models/customForm')
 const User = require('../models/user')
+const DocumentTag = require('../models/documentTag')
 const dbCustomForm = require('../db-api/customForm')
 const config = require('../config')
 const log = require('../services/logger')
@@ -214,20 +215,71 @@ let projectCustomForm = {
   'version': 0
 }
 
+const categorias = [
+    { name: 'Ambiente', key: 'ambiente' },
+    { name: 'Ciencia y tecnología', key: 'ciencia-tecnologia' },
+    { name: 'Economía y finanzas', key: 'economia' },
+    { name: 'Comercio', key: 'comercio' },
+    { name: 'Cultura', key: 'cultura' },
+    { name: 'Deporte', key: 'deporte' },
+    { name: 'Derechos Humanos', key: 'derechos-humanos' },
+    { name: 'Discapacidad', key: 'discapacidad' },
+    { name: 'Educación', key: 'educacion' },
+    { name: 'Federalización', key: 'federalizacion' },
+    { name: 'Género y diversidad', key: 'genero-diversidad' },
+    { name: 'Homenajes y reconocimientos', key: 'homenajes' },
+    { name: 'Impuestos y servicios', key: 'impuestos' },
+    { name: 'Industria', key: 'industria' },
+    { name: 'Internacional', key: 'internacional' },
+    { name: 'Justicia', key: 'justicia' },
+    { name: 'Legislación Penal', key: 'legislacion' },
+    { name: 'Libertad de expresión', key: 'libertad' },
+    { name: 'Mercosur', key: 'mercosur' },
+    { name: 'Modernización y transparencia', key: 'modernizacion-transparencia' },
+    { name: 'Obras públicas', key: 'obras-publicas' },
+    { name: 'Previsión social', key: 'prevision-social' },
+    { name: 'Salud', key: 'salud' },
+    { name: 'Seguridad', key: 'seguridad' },
+    { name: 'Trabajo', key: 'trabajo' },
+    { name: 'Transporte', key: 'transporte' },
+    { name: 'Turismo', key: 'turismo' },
+    { name: 'Agricultura, ganadería, minería y pesca (o actividades primarias)', key: 'agricultura' }
+  ]
+
 class DatabaseNotEmpty extends Error { }
 class StopSetup extends Error { }
 
 async function checkDB() {
   log.debug('* Checking if there are users without tagsNotification setting')
   let users = await User.find({ 'fields.tagsNotification': null })
-  if (users && users.length){
+  if (users && users.length) {
     log.debug(`*- Found ${users.length} users. Updating all.`)
     await User.updateMany({ fields: null }, {$set: {fields: { tagsNotification: true }}})
     await User.updateMany({ 'fields.tagsNotification': null }, {$set: {'fields.tagsNotification': true}})
     log.debug('--> OK updating users')
-  }else
+  } else {
     log.debug('*- No users found. Continuing.')
-
+  }
+  log.debug('* December 2020 - Adding -key- field to tags if not there.')
+  log.debug('  *  First check if there are tags...')
+  const countDocumentTag = await DocumentTag.countDocuments({})
+  if (countDocumentTag > 0) {
+    log.debug(`  *  Found ${countDocumentTag} tags, lets check if there are tags without -key- field`)
+    const countDocumentTagWithoutKeyField = await DocumentTag.countDocuments({ 'key': { $exists: false } })
+    log.debug(`  *  Found ${countDocumentTagWithoutKeyField} without key field..`)
+    if (countDocumentTagWithoutKeyField > 0) {
+      log.debug(`  *  Starting to populate`)
+      for (let index = 0; index < categorias.length; index++) {
+        log.debug(`  *  Updating ${categorias[index].name} with key ${categorias[index].key}`)
+        await DocumentTag.update({ 'name': categorias[index].name }, { $set: { 'key': categorias[index].key } })    
+      }
+      log.debug(`  *  DONE`)
+    } else {
+      log.debug(`  *  No need to populate`)
+    }
+  } else {
+    log.debug('  *  No tags at all.. is this first init? Then.. thats fine. Continuing')
+  }
   log.debug('* Checking if database has data on it')
   let community = await Community.findOne({})
   let customForm = await CustomForm.findOne({})

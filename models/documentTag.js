@@ -3,7 +3,8 @@ const mongoosePaginate = require('mongoose-paginate')
 
 // Define `DocumentTag` Schema
 const DocumentTag = new mongoose.Schema({
-  name: { type: String }
+  name: { type: String },
+  key: { type: String }
 })
 
 // Model's Plugin Extensions
