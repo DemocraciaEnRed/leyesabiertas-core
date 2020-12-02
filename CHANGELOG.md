@@ -30,6 +30,7 @@ Listado de cambios:
 
 Compatible con:
 * `leyesabiertas-web:1.9.0`
+* `leyesabiertas-core:1.9.0`
 * `leyesabiertas-notifier:1.9.0`
 * `leyesabiertas-keycloak:1.8.0`
 
