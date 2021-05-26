@@ -6,11 +6,16 @@ Aumentado a las settings del server limites para el payload ya que habia reporte
 
 Mas info en: https://reactgo.com/request-entity-too-large-node/
 
-
 ```
 server.use(express.json({limit: '50mb'}))
 server.use(express.urlencoded({ limit: '50mb', extended: false }))
 ```
+
+Compatible con:
+* `leyesabiertas-web:1.9.3`
+* `leyesabiertas-core:1.9.2`
+* `leyesabiertas-notifier:1.9.1`
+* `leyesabiertas-keycloak:1.8.0`
 
 ### 1.9.0
 
