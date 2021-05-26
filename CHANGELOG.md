@@ -1,6 +1,6 @@
 # Changelog
 
-### 1.9.1
+### 1.9.2
 
 Aumentado a las settings del server limites para el payload ya que habia reporte de algunos articulos que no estaban pudiendo ser guardados por limites en el payload.
 
