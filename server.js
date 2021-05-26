@@ -22,8 +22,8 @@ module.exports = (async () => {
     server.use(helmet())
     server.use(cors())
     server.use(compression())
-    server.use(express.json())
-    server.use(express.urlencoded({ extended: false }))
+    server.use(express.json({limit: '50mb'}))
+    server.use(express.urlencoded({ limit: '50mb', extended: false }))
     server.use(loggerMiddleware)
     server.use(session({
       secret: config.SESSION_SECRET,

@@ -1,5 +1,17 @@
 # Changelog
 
+### 1.9.1
+
+Aumentado a las settings del server limites para el payload ya que habia reporte de algunos articulos que no estaban pudiendo ser guardados por limites en el payload.
+
+Mas info en: https://reactgo.com/request-entity-too-large-node/
+
+
+```
+server.use(express.json({limit: '50mb'}))
+server.use(express.urlencoded({ limit: '50mb', extended: false }))
+```
+
 ### 1.9.0
 
 1. Nueva funcion: Apoyar un proyecto. Ahora se puede apoyar un proyecto, como usuario registrado o como anonimo (con la necesidad de ingresar la informacion, un captcha, y una validacion por email)
