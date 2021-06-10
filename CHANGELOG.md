@@ -1,5 +1,26 @@
 # Changelog
 
+### 1.9.4
+
+2021-06-10: Este pedido fue porque habian usado tag ambiental para representar el Foro Legislativo Ambiental
+
+El problema surge que ahora se requiere el tag de vuelta. Por lo tanto tenemos que:
+
+1. Ver si ya existe el tag de foro-legislativo-ambiental
+   - Si existe, entonces este script ya se corrio. Saltear...
+2. Si no se corrio, crear el tag de foro-legislativo-ambiental
+3. Luego buscar aquellos documentVersions que tienen en sus content.tags el tag de ambiente.
+   - Si esta en la primera posicion, entonces tenemos que intercambiarlo con el de foro-legislativo-ambiental.
+   - Si no esta en la primera posicion, saltear la actualizacion, no hace falta.
+4. Done.
+
+Compatible con:
+* `leyesabiertas-web:1.9.4`
+* `leyesabiertas-core:1.9.4`
+* `leyesabiertas-notifier:1.9.1`
+* `leyesabiertas-keycloak:1.8.0`
+
+
 ### 1.9.2
 
 Aumentado a las settings del server limites para el payload ya que habia reporte de algunos articulos que no estaban pudiendo ser guardados por limites en el payload.

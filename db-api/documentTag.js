@@ -44,7 +44,8 @@ exports.loadIfNotExists = function loadIfNotExists (query) {
     { name: 'Trabajo', key: 'trabajo' },
     { name: 'Transporte', key: 'transporte' },
     { name: 'Turismo', key: 'turismo' },
-    { name: 'Agricultura, ganadería, minería y pesca (o actividades primarias)', key: 'agricultura' }
+    { name: 'Agricultura, ganadería, minería y pesca (o actividades primarias)', key: 'agricultura' },
+    { name: 'Foro Legislativo Ambiental', key: 'foro-legislativo-ambiental' }
   ]
 
   return DocumentTag.deleteMany({}).then(() =>
