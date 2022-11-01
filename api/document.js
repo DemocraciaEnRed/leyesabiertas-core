@@ -61,7 +61,7 @@ router.route('/')
         results.forEach((doc) => {
           doc.closed = today > new Date(doc.currentVersion.content.closingDate)
           doc.apoyosCount = doc.apoyos && doc.apoyos.length || 0
-          delete doc.apoyos
+          //delete doc.apoyos
         })
         if (req.query.closed !== 'null') {
           results = results.filter((doc) => {
@@ -79,6 +79,13 @@ router.route('/')
           //   // return (x === y)? 0 : x? -1 : 1;
           //   return (x.closed === y.closed) ? 0 : x.closed ? 1 : -1
           // })
+        }
+        if (req.query.textFilter && req.query.textFilter !== 'null') {
+          const queryAuthor = req.query.textFilter.toLowerCase()
+          results = results.filter((doc) => {
+            const nameAndTitle = `${doc.author.fullname} ${doc.currentVersion.content.title}`.toLowerCase()
+            return nameAndTitle.includes(queryAuthor)
+          })
         }
         if (req.query.tag && req.query.tag !== 'null') {
           const queryTagId = req.query.tag
