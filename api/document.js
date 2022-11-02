@@ -98,6 +98,13 @@ router.route('/')
             return nameAndTitle.includes(queryAuthor)
           })
         }
+        if (req.query.author && req.query.author !== 'null') {
+          results = results.filter((doc) => {
+            console.log(doc.author._id.toString() === req.query.author)
+            return doc.author._id.toString() === req.query.author
+          })
+        }
+
         if (req.query.tag && req.query.tag !== 'null') {
           const queryTagId = req.query.tag
           // validamos datos de la query, que sea un id de mongo
