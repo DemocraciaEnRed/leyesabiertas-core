@@ -80,10 +80,21 @@ router.route('/')
           //   return (x.closed === y.closed) ? 0 : x.closed ? 1 : -1
           // })
         }
+        if (req.query.created === 'SUPP') {
+          results.sort((a, b) => {
+            if (a.apoyosCount === b.apoyosCount) {
+              return 0
+            }
+            if (a.apoyosCount < b.apoyosCount) {
+              return 1
+            }
+            return -1
+          })
+        }
         if (req.query.textFilter && req.query.textFilter !== 'null') {
           const queryAuthor = req.query.textFilter.toLowerCase()
           results = results.filter((doc) => {
-            const nameAndTitle = `${doc.author.fullname} ${doc.currentVersion.content.title}`.toLowerCase()
+            const nameAndTitle = `${doc.author.fullname} ${doc.author.fields.party} ${doc.currentVersion.content.title}`.toLowerCase()
             return nameAndTitle.includes(queryAuthor)
           })
         }
