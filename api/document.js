@@ -58,10 +58,18 @@ router.route('/')
         }
         results = await Document.retrieve({ published: true }, sort)
         let today = new Date()
+        if(req.session.user){
+          results.forEach((doc) => {
+          doc.userIsApoyado = req.session.user &&
+          doc.apoyos &&
+          doc.apoyos.find(apoyo => apoyo.userId && apoyo.userId.toString() == req.session.user._id) &&
+          true || false
+        })
+        }
         results.forEach((doc) => {
           doc.closed = today > new Date(doc.currentVersion.content.closingDate)
           doc.apoyosCount = doc.apoyos && doc.apoyos.length || 0
-          //delete doc.apoyos
+          delete doc.apoyos
         })
         if (req.query.closed !== 'null') {
           results = results.filter((doc) => {
