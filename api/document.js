@@ -108,7 +108,6 @@ router.route('/')
         }
         if (req.query.author && req.query.author !== 'null') {
           results = results.filter((doc) => {
-            console.log(doc.author._id.toString() === req.query.author)
             return doc.author._id.toString() === req.query.author
           })
         }
