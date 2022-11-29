@@ -61,7 +61,7 @@ exports.loadIfNotExists = function loadIfNotExists (query) {
   )
 }
 
-/* exports.create = function create (data) {
+exports.create = function create (data) {
   return (new DocumentTag(data)).save()
 }
 
@@ -71,4 +71,4 @@ exports.remove = function remove (id) {
       if (!like) throw ErrNotFound('DocumentTag to remove not found')
       return like.remove()
     })
-} */
+}

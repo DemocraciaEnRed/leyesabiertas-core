@@ -18,11 +18,17 @@ router.route('/')
           limit: req.query.limit,
           page: req.query.page
         }, false)
+        let auxOne = parseInt(results.total / req.query.limit)
+        let auxTwo = results.total % req.query.limit
+        if (auxTwo) {
+          auxOne++
+        }
         res.status(status.OK).json({
           results: results.docs,
           pagination: {
             count: results.total,
             page: results.page,
+            pages: auxOne,
             limit: results.limit
           }
         })
