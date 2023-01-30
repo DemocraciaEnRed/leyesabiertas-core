@@ -324,7 +324,7 @@ router.route('/:id')
    */
   .put(
     middlewares.checkId,
-    auth.keycloak.protect('realm:accountable'),
+    auth.keycloak.protect(['realm:accountable', 'realm:admin']),
     async (req, res, next) => {
       try {
         // Get the document
@@ -333,7 +333,7 @@ router.route('/:id')
           throw errors.ErrNotFound('Document not found')
         }
         // Check if the user is the author of the document
-        if (!req.session.user._id.equals(document.author._id)) {
+        if (!req.session.user._id.equals(document.author._id) && !req.session.user.roles.includes('admin')) {
           throw errors.ErrForbidden // User is not the author
         }
         // First deal with the decorations! Comments needs to be updated!
