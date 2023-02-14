@@ -332,9 +332,16 @@ router.route('/:id')
         if (!document) {
           throw errors.ErrNotFound('Document not found')
         }
-        // Check if the user is the author of the document
+        // Check if the user is the author of the document or userAdmin
         if (!req.session.user._id.equals(document.author._id) && !req.session.user.roles.includes('admin')) {
-          throw errors.ErrForbidden // User is not the author
+          throw errors.ErrForbidden // User is not the author or userAdmin
+        }
+        // Check if userAdmin is changing author
+        if (req.session.user.roles.includes('admin')) {
+          if (document.author._id.toString() !== req.body.content.author) {
+            await Document.update(document._id, {author: ObjectId(req.body.content.author)})
+            delete req.body.content.author
+          }
         }
         // First deal with the decorations! Comments needs to be updated!
         if (req.body.decorations && req.body.decorations.length > 0) {
@@ -411,7 +418,7 @@ router.route('/:id/version/:version')
         // Check if it is published or not (draft)
         if (!document.published) {
           // It's a draft, check if the author is the user who requested it.
-          if (!isTheAuthor) {
+          if (!isTheAuthor && !req.session.user.roles.includes('admin')) {
             // No, Then the user shouldn't be asking for this document.
             throw errors.ErrForbidden
           }

@@ -141,6 +141,10 @@ let projectCustomForm = {
         'type': 'object',
         'title': "Project's fundations"
       },
+      'author': {
+        'type': 'string',
+        'title': "Author's project"
+      },      
       'articles': {
         'type': 'object',
         'title': 'Articles'
