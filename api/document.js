@@ -56,7 +56,8 @@ router.route('/')
           limit: req.query.limit || 10,
           page: req.query.page || 1
         }
-        results = await Document.retrieve({ published: true }, sort)
+        let published = req.session.user && req.session.user.roles.includes('admin') && req.query.author ? {} : {published:true}
+        results = await Document.retrieve(published, sort)
         let today = new Date()
         if(req.session.user){
           results.forEach((doc) => {
@@ -188,7 +189,7 @@ router.route('/my-documents')
      * @apiGroup Document
      */
   .get(
-    auth.keycloak.protect('realm:accountable'),
+    auth.keycloak.protect(['realm:accountable', 'realm:admin']),
     async (req, res, next) => {
       try {
         let results = null
@@ -277,14 +278,16 @@ router.route('/:id')
         if (!document) throw errors.ErrNotFound('Document not found or doesn\'t exist')
         // Check if the user is the author
         const isTheAuthor = req.session.user ? req.session.user._id.equals(document.author._id) : false
+        const isAdmin = req.session.user ? req.session.user.roles.includes('admin') : false
         const isClosed = new Date() > new Date(document.currentVersion.content.closingDate)
         // Check if it is published or not (draft)
         if (!document.published) {
           // It's a draft, check if the author is the user who requested it.
-          if (!isTheAuthor) {
+          if (!isTheAuthor && !isAdmin) {
             // No, Then the user shouldn't be asking for this document.
             throw errors.ErrForbidden
           }
+
         }
         document.closed = isClosed
         let payload = {
@@ -338,7 +341,7 @@ router.route('/:id')
         }
         // Check if userAdmin is changing author
         if (req.session.user.roles.includes('admin')) {
-          if (document.author._id.toString() !== req.body.content.author) {
+          if (req.body.content && (document.author._id.toString() !== req.body.content.author)) {
             await Document.update(document._id, {author: ObjectId(req.body.content.author)})
             delete req.body.content.author
           }
