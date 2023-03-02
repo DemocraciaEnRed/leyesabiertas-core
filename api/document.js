@@ -151,7 +151,7 @@ router.route('/')
    * @apiPermission accountable
    */
   .post(
-    auth.keycloak.protect('realm:accountable'),
+    auth.keycloak.protect(['realm:accountable', 'realm:admin']),
     async (req, res, next) => {
       try {
         // ~~~~~~~~~~~~~~~~~~~~~
