@@ -13,6 +13,7 @@ router.route('/')
  * @apiGroup User
  */
   .get(
+    auth.keycloak.protect('realm:admin'),
     async (req, res, next) => {
       try {
         const search = new RegExp(`^${req.query.search}`,'i')
@@ -137,7 +138,7 @@ router.route('/:id')
       auth.keycloak.protect('realm:admin'),
       async (req, res, next) => {
         try {
-          req
+          
           const updatedUser = await User.update(req.params.id , req.body)
           res.status(status.OK).json(updatedUser)
         } catch (err) {
