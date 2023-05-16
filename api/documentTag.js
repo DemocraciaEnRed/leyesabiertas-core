@@ -30,7 +30,7 @@ router.route('/')
     auth.keycloak.protect('realm:admin'),
     async (req, res, next) => {
     try {
-      results = await DocumentTag.create(req.body)
+      let results = await DocumentTag.create(req.body)
       res.status(status.OK).json({
         results: results
       })

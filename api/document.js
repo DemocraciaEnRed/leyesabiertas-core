@@ -64,8 +64,7 @@ router.route('/')
           results.forEach((doc) => {
           doc.userIsApoyado = req.session.user &&
           doc.apoyos &&
-          doc.apoyos.find(apoyo => apoyo.userId && apoyo.userId.toString() == req.session.user._id) &&
-          true || false
+          Boolean(doc.apoyos.find(apoyo => apoyo.userId && apoyo.userId.toString() == req.session.user._id))
         })
         }
         results.forEach((doc) => {
