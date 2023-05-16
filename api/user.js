@@ -1,6 +1,7 @@
 const status = require('http-status')
 const express = require('express')
 const router = express.Router()
+
 const User = require('../db-api/user')
 const auth = require('../services/auth')
 const middlewares = require('../services/middlewares')
@@ -16,12 +17,17 @@ router.route('/')
     auth.keycloak.protect('realm:admin'),
     async (req, res, next) => {
       try {
-        const search = new RegExp(`^${req.query.search}`,'i')
-        const results = await User.list(req.query.search ? {$or:[
-          {names: search},
-          {surnames:search},
-          {fullname: search},
-          {'fields.party':search}]} : {}, {
+        const search = { "$regex": req.query.search, "$options": "i" }
+        let query = {}
+        if (req.query.search) query = {
+          $or:[
+          {'names':  search},
+          {'surnames': search},
+          {'fullname':  search},
+          {'fields.party': search}
+        ]} 
+
+        const results = await User.list(query, {
           limit: req.query.limit,
           page: req.query.page,
         }, false)

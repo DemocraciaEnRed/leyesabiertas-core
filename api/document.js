@@ -56,7 +56,8 @@ router.route('/')
           limit: req.query.limit || 10,
           page: req.query.page || 1
         }
-        let published = req.session.user && req.session.user.roles.includes('admin') && req.query.author ? {} : {published:true}
+        let published = req.session.user?.roles.includes('admin') && req.query.author ? {} : {published:true}
+
         results = await Document.retrieve(published, sort)
         let today = new Date()
         if(req.session.user){
