@@ -1,9 +1,11 @@
 const status = require('http-status')
 const express = require('express')
 const router = express.Router()
+
 const User = require('../db-api/user')
 const auth = require('../services/auth')
 const middlewares = require('../services/middlewares')
+const { query } = require('winston')
 
 router.route('/')
 /**
@@ -12,17 +14,35 @@ router.route('/')
  * @apiGroup User
  */
   .get(
+    auth.keycloak.protect('realm:admin'),
     async (req, res, next) => {
       try {
-        const results = await User.list({}, {
+        const search = { "$regex": req.query.search, "$options": "i" }
+        let query = {}
+        if (req.query.search) query = {
+          $or:[
+          {'names':  search},
+          {'surnames': search},
+          {'fullname':  search},
+          {'fields.party': search}
+        ]} 
+
+        const results = await User.list(query, {
           limit: req.query.limit,
-          page: req.query.page
+          page: req.query.page,
         }, false)
+        
+        let auxOne = parseInt(results.total / req.query.limit)
+        let auxTwo = results.total % req.query.limit
+        if (auxTwo) {
+          auxOne++
+        }
         res.status(status.OK).json({
           results: results.docs,
           pagination: {
             count: results.total,
             page: results.page,
+            pages: auxOne,
             limit: results.limit
           }
         })
@@ -113,6 +133,25 @@ router.route('/:id')
         next(err)
       }
     })
+    /**
+     * @api {get} /users/:id puts a user
+     * @apiName putUser
+     * @apiGroup User
+     *
+     * @apiParam {Number} id Users ID.
+     */
+    .put(
+      auth.keycloak.protect('realm:admin'),
+      async (req, res, next) => {
+        try {
+          
+          const updatedUser = await User.update(req.params.id , req.body)
+          res.status(status.OK).json(updatedUser)
+        } catch (err) {
+          next(err)
+        }
+      })
+  
 /**
      * @api {delete} /users/:id Delets a user
      * @apiName deleteUser
