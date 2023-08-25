@@ -130,6 +130,7 @@ router.route('/')
           auxOne++
         }
         let cantTotal = results.length
+        results.sort((a,b)=> new Date(b.currentVersion.content.closingDate) - new Date(a.currentVersion.content.closingDate) ) 
         let finalArr = results.splice(((paginate.page - 1) * paginate.limit), paginate.limit)
         res.status(status.OK).json({
           results: finalArr,
