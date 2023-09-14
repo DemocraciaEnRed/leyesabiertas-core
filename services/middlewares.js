@@ -38,7 +38,8 @@ exports.bindUserToSession = async (req, res, next) => {
               avatar: defaultImage,
               fields: {
                 tagsNotification: true
-              }
+              },
+              lastLogin: Date.now()
             })
             // Bind to session
             req.session.user = userCreated
@@ -48,7 +49,8 @@ exports.bindUserToSession = async (req, res, next) => {
               names: auth.getNames(req),
               surnames: auth.getSurnames(req),
               email: auth.getEmail(req),
-              roles: auth.getRoles(req)
+              roles: auth.getRoles(req),
+              lastLogin: Date.now()
             })
           }
         }
@@ -66,7 +68,8 @@ exports.bindUserToSession = async (req, res, next) => {
             names: auth.getNames(req),
             surnames: auth.getSurnames(req),
             email: auth.getEmail(req),
-            roles: auth.getRoles(req)
+            roles: auth.getRoles(req),
+            lastLogin: Date.now()
           })
           // Retrieve user  again
           user = await User.get({ keycloak: keycloakId })
@@ -85,7 +88,8 @@ exports.bindUserToSession = async (req, res, next) => {
             avatar: defaultImage,
             fields: {
               tagsNotification: true
-            }
+            },
+            lastLogin: Date.now()
           })
           // Bind to session
           req.session.user = userCreated

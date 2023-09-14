@@ -67,3 +67,57 @@ exports.remove = function remove (id) {
       return user.remove()
     })
 }
+
+exports.getCountOfUsers = async function getCountOfUsers (yearCreatedAt) {
+  let query = {}
+
+  if (yearCreatedAt) {
+    query.createdAt = {
+      '$gte': new Date(yearCreatedAt, 0, 1),
+      '$lt': new Date(yearCreatedAt, 11, 31)
+    }
+  }
+
+  return User.countDocuments(query)
+}
+
+exports.getCountOfActiveUsersInTheLastXMonth = async function getCountOfActiveUsersInTheLastXMonth (months = 1) {
+  return User.countDocuments({
+    'lastLogin': {
+      '$gte': new Date(new Date().setMonth(new Date().getMonth() - months))
+    }
+  })
+}
+
+exports.getCountOfUsersByRole = async function getCountOfUsersByRole (role) {
+  return User.countDocuments({ roles: role })
+}
+
+exports.getCountOfUsersWithoutRolesAdminAndAccountable = async function getCountOfUsersWithoutRolesAdminAndAccountable (yearCreatedAt) {
+  // normal users might have a "roles" field array but they are not role "admin" or "accountable"
+  let query = {
+    roles: { $nin: ['admin', 'accountable'] }
+  }
+
+  if (yearCreatedAt) {
+    query.createdAt = {
+      '$gte': new Date(yearCreatedAt, 0, 1),
+      '$lt': new Date(yearCreatedAt, 11, 31)
+    }
+  }
+
+  return User.countDocuments(query).sort({ createdAt: -1 })
+}
+
+// exports.getUsersWithoutRolesAdminAndAccountable = async function getCountOfUsersWithoutRolesAdminAndAccountable () {
+//   // normal users might have a "roles" field array but they are not role "admin" or "accountable"
+//   return User.find({ roles: { $nin: ['admin', 'accountable'] } }, 'fullname email createdAt lastLogin').sort({ createdAt: -1 })
+// }
+
+exports.getUsersByRole = async function getUsersByRole (role) {
+  return User.find({ roles: role }, 'fullname email createdAt lastLogin').sort({ createdAt: -1 })
+}
+
+exports.getAll = async function getAll () {
+  return User.find({}).sort({ createdAt: -1 })
+}

@@ -11,7 +11,8 @@ const User = new mongoose.Schema({
   email: { type: String },
   roles: [{ type: String }],
   avatar: { type: String },
-  fields: { type: mongoose.Schema.Types.Mixed, default: {} }
+  fields: { type: mongoose.Schema.Types.Mixed, default: {} },
+  lastLogin: { type: Date }
 }, { timestamps: true, minimize: false })
 
 // Model's Plugin Extensions
