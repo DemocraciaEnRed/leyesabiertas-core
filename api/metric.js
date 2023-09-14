@@ -260,17 +260,17 @@ router.route('/users/xls')
             'id': user._id.toString(),
             'nombre': user.names,
             'apellido': user.surnames,
-            'nombre completo': user.fullname,
+            'nombreCompleto': user.fullname,
             'email': user.email,
             'ocupacion': user.fields && user.fields.occupation ? user.fields.occupation : '(Sin completar)',
             'genero': user.fields && user.fields.gender ? user.fields.gender : '(Sin completar)',
-            'fecha de nacimiento': user.fields && user.fields.birthdate ? user.fields.birthdate : '(Sin completar)',
+            'fechaNacimiento': user.fields && user.fields.birthdate ? user.fields.birthdate : '(Sin completar)',
             'provincia': user.fields && user.fields.province ? user.fields.province : '(Sin completar)',
             'partido': user.fields && user.fields.party ? user.fields.party : '(Sin completar)',
             'notificaciones_activadas': user.fields.tagsNotification ? 'Si' : 'No',
-            'fecha de creacion': formatXlsDate(user.createdAt),
-            'fecha de actualizacion': formatXlsDate(user.updatedAt),
-            'fecha de ultimo login': formatXlsDate(user.lastLogin)
+            'fechaCreacion': formatXlsDate(user.createdAt),
+            'fechaActualizacion': formatXlsDate(user.updatedAt),
+            'fechaUltimoLogin': formatXlsDate(user.lastLogin)
           }
         })
         const todayDate = new Date()
