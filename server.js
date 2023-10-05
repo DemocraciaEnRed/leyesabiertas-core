@@ -4,6 +4,7 @@ const helmet = require('helmet')
 const session = require('express-session')
 const cors = require('cors')
 const expressWinston = require('express-winston')
+const json2xls = require('json2xls')
 const { keycloak } = require('./services/auth')
 const mongoStore = require('./services/sessions')
 const config = require('./config')
@@ -25,6 +26,7 @@ module.exports = (async () => {
     server.use(express.json({limit: '50mb'}))
     server.use(express.urlencoded({ limit: '50mb', extended: false }))
     server.use(loggerMiddleware)
+    server.use(json2xls.middleware)
     server.use(session({
       secret: config.SESSION_SECRET,
       resave: false,

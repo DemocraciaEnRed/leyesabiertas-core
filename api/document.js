@@ -806,9 +806,6 @@ router.route('/apoyo-anon-validar/:uuid').get(
     }
   )
 
-router.use(json2xls.middleware)
-
-
 function escapeTxt (text) {
   if (!text) return ''
 
@@ -829,6 +826,7 @@ function formatXlsDate (date){
 
   return `${mainParts[0]} ${timeParts[0]}`.trim() // '2020-08-28 15:30:07'
 }
+
 router.route('/my-documents/export-xls')
   /**
      * @api {get} /my-documents/export-xls Excel

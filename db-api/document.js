@@ -2,6 +2,7 @@ const { Types: { ObjectId } } = require('mongoose')
 const { merge } = require('lodash/object')
 const Document = require('../models/document')
 const DocumentVersion = require('../models/documentVersion')
+const DocumentTag = require('../models/documentTag')
 const dbUser = require('../db-api/user')
 const validator = require('../services/jsonSchemaValidator')
 const errors = require('../services/errors')
@@ -66,7 +67,7 @@ exports.list = async function list (query, { limit, page, sort }) {
   optionsPaginate.limit = limit
   optionsPaginate.page = page
   optionsPaginate.lean = true
-  optionsPaginate.populate = [{ path: 'author', select: dbUser.exposeAll(false) }, {path: 'currentVersion'}]
+  optionsPaginate.populate = [{ path: 'author', select: dbUser.exposeAll(false) }, { path: 'currentVersion' }]
   if (sort) {
     optionsPaginate.sort = sort
   }
@@ -138,17 +139,14 @@ exports.remove = function remove (id) {
 exports.apoyar = async function apoyar (documentId, userId) {
   // primero vemos si ya apoyó
   let documentApoyado = await Document.findOne({ _id: documentId, 'apoyos.userId': userId })
-  if (!documentApoyado)
-    return Document.updateOne({_id: documentId}, {'$push': {apoyos: {userId: userId}}})
-  else
-    return documentApoyado
+  if (!documentApoyado) { return Document.updateOne({ _id: documentId }, { '$push': { apoyos: { userId: userId } } }) } else { return documentApoyado }
 }
 
-exports.apoyarAnon = async function apoyarAnon(apoyoToken) {
+exports.apoyarAnon = async function apoyarAnon (apoyoToken) {
   // primero vemos si ya apoyó
   let documentApoyado = await Document.findOne({ _id: apoyoToken.document._id, 'apoyos.email': apoyoToken.email })
-  if (!documentApoyado)
-    await Document.updateOne({_id: apoyoToken.document._id}, {
+  if (!documentApoyado) {
+    await Document.updateOne({ _id: apoyoToken.document._id }, {
       '$push': {
         apoyos: {
           email: apoyoToken.email,
@@ -156,4 +154,347 @@ exports.apoyarAnon = async function apoyarAnon(apoyoToken) {
         }
       }
     })
+  }
+}
+
+exports.countDocumentsPerAuthor = async function countDocumentsPerAuthor (yearCreatedAt) {
+  let aggretation = []
+  if (yearCreatedAt) {
+    aggretation.push({
+      '$match': {
+        'createdAt': {
+          '$gte': new Date(yearCreatedAt, 0, 1),
+          '$lt': new Date(yearCreatedAt, 11, 31)
+        }
+      }
+    })
+  }
+
+  aggretation = aggretation.concat([
+    {
+      '$group': {
+        '_id': '$author',
+        'count': {
+          '$sum': 1
+        }
+      }
+    }, {
+      '$lookup': {
+        'from': 'users',
+        'localField': '_id',
+        'foreignField': '_id',
+        'as': 'user'
+      }
+    }, {
+      '$sort': {
+        'count': -1
+      }
+    }, {
+      '$unwind': {
+        'path': '$user'
+      }
+    }, {
+      '$project': {
+        'count': 1,
+        'user': {
+          'fullname': 1,
+          'email': 1
+        }
+      }
+    }
+  ])
+
+  return Document.aggregate(aggretation)
+}
+
+exports.getAllDocumentsWithTags = async function getAllDocumentsWithTags (tagsArray, yearCreatedAt) {
+  let aggregation = []
+  if (yearCreatedAt) {
+    aggregation.push({
+      '$match': {
+        'createdAt': {
+          '$gte': new Date(yearCreatedAt, 0, 1),
+          '$lt': new Date(yearCreatedAt, 11, 31)
+        }
+      }
+    })
+  }
+
+  aggregation = aggregation.concat([
+    {
+      '$lookup': {
+        'from': 'documentversions',
+        'localField': 'currentVersion',
+        'foreignField': '_id',
+        'as': 'currentVersion'
+      }
+    }, {
+      '$unwind': {
+        'path': '$currentVersion'
+      }
+    }, {
+      '$lookup': {
+        'from': 'users',
+        'localField': 'author',
+        'foreignField': '_id',
+        'as': 'author'
+      }
+    }, {
+      '$unwind': {
+        'path': '$author'
+      }
+    }, {
+      '$match': {
+        'currentVersion.content.tags': {
+          '$in': tagsArray
+        }
+      }
+    }, {
+      '$project': {
+        'title': '$currentVersion.content.title',
+        'documentId': '$_id',
+        'version': '$currentVersion.version',
+        'closingDate': '$currentVersion.content.closingDate',
+        'tags': '$currentVersion.content.tags',
+        'published': '$published',
+        'author': {
+          'id': '$author._id',
+          'fullname': '$author.fullname',
+          'email': '$author.email'
+        },
+        'createdAt': '$createdAt',
+        'updatedAt': '$updatedAt'
+      }
+    }, {
+      '$sort': {
+        'createdAt': -1
+      }
+    }
+  ])
+
+  const docArray = await Document.aggregate(aggregation)
+
+  console.log(docArray)
+  
+  const documentTags = await DocumentTag.find({})
+
+  for (let i = 0; i < docArray.length; i++) {
+    const doc = docArray[i]
+    if (doc.tags) {
+      doc.tags = doc.tags.map((tag) => {
+        return documentTags.find((documentTag) => documentTag._id.toString() === tag)
+      }).filter((tag) => tag)
+    }
+  }
+
+  return docArray
+}
+
+exports.getAllDocumentsWithoutTags = async function getAllDocumentsWithoutTags (yearCreatedAt) {
+  let aggregation = []
+  if (yearCreatedAt) {
+    aggregation.push({
+      '$match': {
+        'createdAt': {
+          '$gte': new Date(yearCreatedAt, 0, 1),
+          '$lt': new Date(yearCreatedAt, 11, 31)
+        }
+      }
+    })
+  }
+
+  aggregation = aggregation.concat([
+    {
+      '$lookup': {
+        'from': 'documentversions',
+        'localField': 'currentVersion',
+        'foreignField': '_id',
+        'as': 'currentVersion'
+      }
+    }, {
+      '$unwind': {
+        'path': '$currentVersion'
+      }
+    }, {
+      '$lookup': {
+        'from': 'users',
+        'localField': 'author',
+        'foreignField': '_id',
+        'as': 'author'
+      }
+    }, {
+      '$unwind': {
+        'path': '$author'
+      }
+    }, {
+      '$match': {
+        'currentVersion.content.tags': {
+          '$exists': false
+        }
+      }
+    }, {
+      '$project': {
+        'title': '$currentVersion.content.title',
+        'documentId': '$_id',
+        'version': '$currentVersion.version',
+        'closingDate': '$currentVersion.content.closingDate',
+        'tags': '$currentVersion.content.tags',
+        'published': '$published',
+        'author': {
+          'id': '$author._id',
+          'fullname': '$author.fullname',
+          'email': '$author.email'
+        },
+        'createdAt': '$createdAt',
+        'updatedAt': '$updatedAt'
+      }
+    }, {
+      '$sort': {
+        'createdAt': -1
+      }
+    }
+  ])
+
+  return Document.aggregate(aggregation)
+}
+
+exports.getCountOfCommentsAndLikesPerDocument = async function getCountOfCommentsAndLikesPerDocument (yearCreatedAt, tag, author) {
+  let aggregation = []
+
+  if (yearCreatedAt) {
+    aggregation.push({
+      '$match': {
+        'createdAt': {
+          '$gte': new Date(yearCreatedAt, 0, 1),
+          '$lt': new Date(yearCreatedAt, 11, 31)
+        }
+      }
+    })
+  }
+  if (author) {
+    aggregation.push({
+      '$match': {
+        'author': ObjectId(author)
+      }
+    })
+  }
+
+  aggregation = aggregation.concat([
+    {
+      '$lookup': {
+        'from': 'documentversions',
+        'localField': 'currentVersion',
+        'foreignField': '_id',
+        'as': 'currentVersion'
+      }
+    }, {
+      '$unwind': {
+        'path': '$currentVersion'
+      }
+    }, {
+      '$lookup': {
+        'from': 'users',
+        'localField': 'author',
+        'foreignField': '_id',
+        'as': 'author'
+      }
+    }, {
+      '$unwind': {
+        'path': '$author'
+      }
+    }, {
+      '$lookup': {
+        'from': 'comments',
+        'let': {
+          'document_id': '$_id'
+        },
+        'pipeline': [
+          {
+            '$match': {
+              '$expr': {
+                '$eq': [
+                  '$document', '$$document_id'
+                ]
+              }
+            }
+          }, {
+            '$lookup': {
+              'from': 'likes',
+              'localField': '_id',
+              'foreignField': 'comment',
+              'as': 'likes'
+            }
+          }
+        ],
+        'as': 'comments'
+      }
+    }
+  ])
+
+  const docArray = await Document.aggregate(aggregation)
+
+  if (tag) {
+    // tag is an id, if defined, filter projects that includes this tag
+    for (let i = 0; i < docArray.length; i++) {
+      const doc = docArray[i]
+      if (doc.currentVersion.content.tags) {
+        if (!doc.currentVersion.content.tags.includes(tag)) {
+          docArray.splice(i, 1)
+          i--
+        }
+      } else {
+        docArray.splice(i, 1)
+        i--
+      }
+    }
+  }
+
+  const documentTags = await DocumentTag.find({})
+
+  for (let i = 0; i < docArray.length; i++) {
+    const doc = docArray[i]
+    if (doc.currentVersion.content.tags) {
+      doc.currentVersion.content.tags = doc.currentVersion.content.tags.map((tag) => {
+        return documentTags.find((documentTag) => documentTag._id.toString() === tag)
+      }).filter((tag) => tag)
+    }
+    doc.apoyosCount = doc.apoyos && doc.apoyos.length ? doc.apoyos.length : 0
+    doc.likesCount = 0
+    doc.commentsFundationCount = doc.comments.filter((comment) => comment.field == 'fundation').length
+    doc.commentsArticlesCount = doc.comments.filter((comment) => comment.field == 'articles').length
+    doc.comments.forEach((comment) => {
+      doc.likesCount += comment.likes.length
+    })
+    doc.totalInteraction = doc.apoyosCount + doc.likesCount + doc.commentsFundationCount + doc.commentsArticlesCount
+  }
+
+  const resData = []
+
+  for (let i = 0; i < docArray.length; i++) {
+    const doc = docArray[i]
+    resData.push({
+      title: doc.currentVersion.content.title,
+      documentId: doc._id,
+      version: doc.currentVersion.version,
+      createdAt: doc.createdAt,
+      closingDate: doc.currentVersion.content.closingDate,
+      tags: doc.currentVersion.content.tags,
+      apoyosCount: doc.apoyosCount,
+      likesCount: doc.likesCount,
+      published: doc.published,
+      commentsFundationCount: doc.commentsFundationCount,
+      commentsArticlesCount: doc.commentsArticlesCount,
+      totalInteraction: doc.totalInteraction,
+      author: {
+        id: doc.author._id,
+        fullname: doc.author.fullname,
+        email: doc.author.email
+      }
+    })
+  }
+
+  // sort by totalInteraction DESC
+  resData.sort((a, b) => b.totalInteraction - a.totalInteraction)
+
+  return resData
 }
