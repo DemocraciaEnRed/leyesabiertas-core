@@ -19,6 +19,7 @@ const json2xls = require('json2xls')
 const svgCaptcha = require('svg-captcha');
 const crypto = require('crypto');
 const log = require('../services/logger')
+const createProjectBase = require('../services/projectBase')
 const { v4: uuidv4 } = require('uuid');
 
 /**
@@ -168,13 +169,15 @@ router.route('/')
         // ~~~~~~~~~~~~~~~~~~~~~
         req.body.author = req.session.user._id
         // In the body of the request customForm will be a slug. It will be an id later.
-        const customForm = await CustomForm.get({ slug: req.body.customForm })
+        const customForm = await CustomForm.get({ slug: 'project-form' })
         if (!customForm) {
-          throw errors.ErrBadRequest('customForm')
+          throw errors.ErrBadRequest('Custom form not found')
         }
-        const newDocument = await Document.create(req.body, customForm)
+        const projectBase = createProjectBase()
+        projectBase.author = req.session.user._id
+        const newDocument = await Document.create(projectBase, customForm)
         // Set closing notification agenda
-        notifier.setDocumentClosesNotification(newDocument._id, req.body.content.closingDate)
+        notifier.setDocumentClosesNotification(newDocument._id, projectBase.content.closingDate)
         // Send
         res.status(status.CREATED).send(newDocument)
       } catch (err) {

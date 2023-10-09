@@ -17,8 +17,6 @@ router.route('/')
     async (req, res, next) => {
       try {
         let results = await DocumentTag.getAll()
-        if (results.length == 0)
-          results = await DocumentTag.loadIfNotExists()
         res.status(status.OK).json({
           results: results
         })
