@@ -42,8 +42,25 @@ let userProfileCustomForm = {
         'uniqueItems': true,
         'items': { 'type': 'string' }
       },
+      'authors': {
+        'title': "User's followed authors",
+        'type': 'array',
+        'uniqueItems': true,
+        'items': { 'type': 'string' }
+      },
       'tagsNotification': {
         'title': "User's tags notification setting",
+        'anyof': [
+          {
+            'type': 'null'
+          },
+          {
+            'type': 'boolean'
+          }
+        ]
+      },
+      'popularNotification': {
+        'title': "User's popular notifications setting",
         'anyof': [
           {
             'type': 'null'

@@ -67,6 +67,20 @@ exports.sendDocumentPublishedNotification = (documentId) => {
   })
 }
 
+exports.sendDocumentPopularNotification = (documentId) => {
+  let payload = {
+    documentId
+  }
+  http.post(`${NOTIFIER_URL}/document-popular`, payload).then((response) => {
+    log.info(response && response.data && response.data.message, payload)
+  }).catch((error) => {
+    log.error('ERROR Sending Email', {
+      meta: payload,
+      message: error.message,
+      data: error.response && error.response.data
+    })
+  })
+}
 
 exports.sendValidarApoyoNotification = (documentId, tokenId) => {
   let payload = {

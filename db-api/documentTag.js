@@ -15,8 +15,8 @@ exports.create = function create (data) {
 
 exports.remove = function remove (id) {
   return DocumentTag.findById(id)
-    .then((like) => {
-      if (!like) throw ErrNotFound('DocumentTag to remove not found')
-      return like.remove()
+    .then((documentTag) => {
+      if (!documentTag) throw ErrNotFound('DocumentTag to remove not found')
+      return documentTag.remove()
     })
 }
