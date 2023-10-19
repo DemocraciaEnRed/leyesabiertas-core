@@ -507,10 +507,6 @@ exports.isPopular = async function isPopular (documentId) {
   const countCommentsFundation = await Comment.count({ document: document._id, field: 'fundation', author: { $ne: documentAuthorId } })
   // count contributions but not from the author
   const countContributionsArticles = await Comment.count({ document: document._id, field: 'articles', author: { $ne: documentAuthorId } })
-  console.dir(document)
-  console.dir(document.apoyosCount)
-  console.dir(countCommentsFundation)
-  console.dir(countContributionsArticles)
   // For a document to be popular, it needs to have:
   // 30 apoyos
   // 10 comments in fundation
