@@ -22,7 +22,6 @@ const log = require('../services/logger')
 const createProjectBase = require('../services/projectBase')
 const { v4: uuidv4 } = require('uuid')
 const documentTag = require('../models/documentTag')
-const { logger } = require('express-winston')
 
 /**
  * @apiDefine admin User access only
@@ -400,7 +399,7 @@ router.route('/:id')
         if (req.body.published !== undefined && req.body.published !== null) {
           if (!document.publishedMailSent && document.currentVersion.content.sendTagsNotification && updatedDocument.published) {
             // Send email
-            logger.info('Sending email to users with tags notification enabled')
+            log.info('Sending email to users with tags notification enabled')
             notifier.sendDocumentPublishedNotification(updatedDocument.id)
           }
         }
