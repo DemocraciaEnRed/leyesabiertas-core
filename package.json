@@ -28,7 +28,7 @@
     "draft-js": "^0.10.5",
     "express": "^4.17.1",
     "express-paginate": "^0.3.0",
-    "express-react-views": "^0.10.5",
+    "express-react-views": "^0.11.0",
     "express-session": "^1.16.2",
     "express-winston": "^2.6.0",
     "helmet": "^3.18.0",
@@ -61,7 +61,7 @@
     "faker": "^4.1.0",
     "mocha": "^5.2.0",
     "nodemon": "^1.19.1",
-    "rewire": "^3.0.2",
+    "rewire": "^6.0.0",
     "sinon": "^6.3.5",
     "sinon-mongoose": "^2.3.0"
   },
