@@ -36,7 +36,7 @@
     "json-diff": "^0.5.4",
     "json2xls": "^0.1.2",
     "keycloak-connect": "^4.8.3",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.21",
     "mongoose": "~5.5.13",
     "mongoose-immutable": "0.0.2",
     "mongoose-paginate": "^5.0.3",
