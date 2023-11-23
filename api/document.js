@@ -16,10 +16,12 @@ const notifier = require('../services/notifier')
 const middlewares = require('../services/middlewares')
 const utils = require('../services/utils')
 const json2xls = require('json2xls')
-const svgCaptcha = require('svg-captcha');
-const crypto = require('crypto');
+const svgCaptcha = require('svg-captcha')
+const crypto = require('crypto')
 const log = require('../services/logger')
-const { v4: uuidv4 } = require('uuid');
+const createProjectBase = require('../services/projectBase')
+const { v4: uuidv4 } = require('uuid')
+const documentTag = require('../models/documentTag')
 
 /**
  * @apiDefine admin User access only
@@ -56,16 +58,16 @@ router.route('/')
           limit: req.query.limit || 10,
           page: req.query.page || 1
         }
-        let published = req.session.user?.roles.includes('admin') && req.query.author ? {} : {published:true}
+        let published = req.session.user?.roles.includes('admin') && req.query.author ? {} : { published: true }
 
         results = await Document.retrieve(published, sort)
         let today = new Date()
-        if(req.session.user){
+        if (req.session.user) {
           results.forEach((doc) => {
-          doc.userIsApoyado = req.session.user &&
+            doc.userIsApoyado = req.session.user &&
           doc.apoyos &&
-          Boolean(doc.apoyos.find(apoyo => apoyo.userId && apoyo.userId.toString() == req.session.user._id))
-        })
+          Boolean(doc.apoyos.find((apoyo) => apoyo.userId && apoyo.userId.toString() == req.session.user._id))
+          })
         }
         results.forEach((doc) => {
           doc.closed = today > new Date(doc.currentVersion.content.closingDate)
@@ -116,13 +118,13 @@ router.route('/')
         if (req.query.tag && req.query.tag !== 'null') {
           const queryTagId = req.query.tag
           // validamos datos de la query, que sea un id de mongo
-          if (/^[a-f0-9]{24}$/.test(queryTagId))
-            results = results.filter(doc =>
-              doc.currentVersion.content.tags ?
-                doc.currentVersion.content.tags.includes(queryTagId)
-              :
-                false
+          if (/^[a-f0-9]{24}$/.test(queryTagId)) {
+            results = results.filter((doc) =>
+              doc.currentVersion.content.tags
+                ? doc.currentVersion.content.tags.includes(queryTagId)
+                : false
             )
+          }
         }
         let auxOne = parseInt(results.length / paginate.limit)
         let auxTwo = results.length % paginate.limit
@@ -130,7 +132,7 @@ router.route('/')
           auxOne++
         }
         let cantTotal = results.length
-        results.sort((a,b)=> new Date(b.currentVersion.content.closingDate) - new Date(a.currentVersion.content.closingDate) ) 
+        results.sort((a, b) => new Date(b.currentVersion.content.closingDate) - new Date(a.currentVersion.content.closingDate))
         let finalArr = results.splice(((paginate.page - 1) * paginate.limit), paginate.limit)
         res.status(status.OK).json({
           results: finalArr,
@@ -168,13 +170,15 @@ router.route('/')
         // ~~~~~~~~~~~~~~~~~~~~~
         req.body.author = req.session.user._id
         // In the body of the request customForm will be a slug. It will be an id later.
-        const customForm = await CustomForm.get({ slug: req.body.customForm })
+        const customForm = await CustomForm.get({ slug: 'project-form' })
         if (!customForm) {
-          throw errors.ErrBadRequest('customForm')
+          throw errors.ErrBadRequest('Custom form not found')
         }
-        const newDocument = await Document.create(req.body, customForm)
+        const projectBase = createProjectBase()
+        projectBase.author = req.session.user._id
+        const newDocument = await Document.create(projectBase, customForm)
         // Set closing notification agenda
-        notifier.setDocumentClosesNotification(newDocument._id, req.body.content.closingDate)
+        notifier.setDocumentClosesNotification(newDocument._id, projectBase.content.closingDate)
         // Send
         res.status(status.CREATED).send(newDocument)
       } catch (err) {
@@ -211,8 +215,7 @@ router.route('/my-documents')
         })
         let today = new Date()
         results.docs.forEach((doc) => {
-          if (doc.currentVersion && doc.currentVersion.content)
-            doc.closed = today > new Date(doc.currentVersion.content.closingDate)
+          if (doc.currentVersion && doc.currentVersion.content) { doc.closed = today > new Date(doc.currentVersion.content.closingDate) }
           doc.apoyosCount = doc.apoyos && doc.apoyos.length || 0
           delete doc.apoyos
         })
@@ -239,12 +242,12 @@ router.route('/captcha-data').get(
   async (req, res, next) => {
     try {
       // https://www.npmjs.com/package/svg-captcha
-      var captcha = svgCaptcha.create();
+      let captcha = svgCaptcha.create()
 
       const hash = crypto.createHash('sha256').update(captcha.text.toLowerCase()).digest('hex')
 
       log.info('Returning captcha data...')
-      res.status(200).json({img: captcha.data, token: hash});
+      res.status(200).json({ img: captcha.data, token: hash })
     } catch (err) {
       console.log(err)
       next(err)
@@ -288,7 +291,6 @@ router.route('/:id')
             // No, Then the user shouldn't be asking for this document.
             throw errors.ErrForbidden
           }
-
         }
         document.closed = isClosed
         let payload = {
@@ -307,7 +309,7 @@ router.route('/:id')
 
         payload.document.userIsApoyado = req.session.user &&
           document.apoyos &&
-          document.apoyos.find(apoyo => apoyo.userId && apoyo.userId.toString() == req.session.user._id) &&
+          document.apoyos.find((apoyo) => apoyo.userId && apoyo.userId.toString() == req.session.user._id) &&
           true || false
         payload.document.apoyosCount = document.apoyos && document.apoyos.length || 0
         delete payload.document.apoyos
@@ -343,7 +345,7 @@ router.route('/:id')
         // Check if userAdmin is changing author
         if (req.session.user.roles.includes('admin')) {
           if (req.body.content && (document.author._id.toString() !== req.body.content.author)) {
-            await Document.update(document._id, {author: ObjectId(req.body.content.author)})
+            await Document.update(document._id, { author: ObjectId(req.body.content.author) })
             delete req.body.content.author
           }
         }
@@ -393,10 +395,13 @@ router.route('/:id')
           notifier.setDocumentClosesNotification(updatedDocument.id, req.body.content.closingDate)
         }
 
-        if (!document.publishedMailSent && updatedDocument.published && req.body.content && req.body.content.sendTagsNotification){
-          console.log('MANDANDOO')
-          notifier.sendDocumentPublishedNotification(updatedDocument.id)
-          updatedDocument = await Document.update(updatedDocument.id, {publishedMailSent: true})
+        // if req.body.published exists and if it is true or false...
+        if (req.body.published !== undefined && req.body.published !== null) {
+          if (!document.publishedMailSent && document.currentVersion.content.sendTagsNotification && updatedDocument.published) {
+            // Send email
+            log.info('Sending email to users with tags notification enabled')
+            notifier.sendDocumentPublishedNotification(updatedDocument.id)
+          }
         }
         res.status(status.OK).json(updatedDocument)
       } catch (err) {
@@ -578,6 +583,19 @@ router.route('/:id/comments')
         if (!isTheAuthor) {
           notifier.sendNewCommentNotification('comment-new', newComment._id)
         }
+
+        // We need to check if the document became popular
+        if (!document.popularMailSent) {
+          log.info('Checking if document became popular...')
+          const isPopular = await Document.isPopular(document._id)
+          if (isPopular) {
+            log.info('Document is popular, sending post to prepare mails...')
+            notifier.sendDocumentPopularNotification(document._id)
+            // log.info('Mails sent, updating document to save that mails were sent...')
+            // await Document.update(document._id, { popularMailSent: true })
+          }
+        }
+
         // Return the comment with the ID
         res.status(status.CREATED).send(newComment)
       } catch (err) {
@@ -713,7 +731,22 @@ router.route('/:id/apoyar').post(
     try {
       let documentId = req.params.id
       let userId = req.session.user._id
-      await Document.apoyar(documentId, userId)
+      const document = await Document.apoyar(documentId, userId)
+
+      // We need to check if the document became popular
+      if (!document.popularMailSent) {
+        log.info('Checking if document became popular...')
+        const isPopular = await Document.isPopular(documentId)
+        if (isPopular) {
+          log.info('Document is popular, sending post to prepare mails...')
+          notifier.sendDocumentPopularNotification(document._id)
+          // log.info('Mails sent, updating document to save that mails were sent...')
+          // await Document.update(document._id, { popularMailSent: true })
+        } else {
+          log.info('Document is not popular, not sending mails')
+        }
+      }
+
       res.status(status.OK).send()
     } catch (err) {
       next(err)
@@ -729,36 +762,30 @@ router.route('/:id/apoyar-anon').post(
 
       // comprobamos captcha
       const captchaHash = crypto.createHash('sha256').update(captcha.toLowerCase()).digest('hex')
-      if (!captcha || captchaHash != token.toLowerCase())
-        return res.status(500).json({error: 'Texto de imagen incorrecto'})
-      log.info('Captcha válido');
+      if (!captcha || captchaHash != token.toLowerCase()) { return res.status(500).json({ error: 'Texto de imagen incorrecto' }) }
+      log.info('Captcha válido')
 
       // comprobamos si ese email no tiene un apoyo ya efectuado
       const hasApoyado = await Document.get({ _id: documentId, 'apoyos.email': email })
-      if (hasApoyado)
-        return res.status(500).json({error: 'Usted ya ha apoyado el proyecto'})
+      if (hasApoyado) { return res.status(500).json({ error: 'Usted ya ha apoyado el proyecto' }) }
 
       // que siga abierto (nunca se debería llegar acá normalmente)
       const document = await Document.get({ _id: documentId })
       const isClosed = new Date() > new Date(document.currentVersion.content.closingDate)
-      if (isClosed)
-        return res.status(500).json({error: 'El proyecto ya finalizó el periodo de aportes'})
+      if (isClosed) { return res.status(500).json({ error: 'El proyecto ya finalizó el periodo de aportes' }) }
 
       // comprobamos si ya hay un apoyo en proceso de validación
       const existingApoyoToken = await ApoyoToken.getByEmail(email)
-      if (existingApoyoToken){
+      if (existingApoyoToken) {
         let firstDate = existingApoyoToken.createdAt,
           secondDate = new Date(),
-          timeDifference = Math.abs(secondDate.getTime() - firstDate.getTime());
-        let instevaloMs = 1000 *60 *60 *48; //48 horas
-        if (timeDifference < instevaloMs)
-          return res.status(500).json({error: 'Ya se envió un mensaje de validación a este mail'})
-        else
-          await existingApoyoToken.remove()
+          timeDifference = Math.abs(secondDate.getTime() - firstDate.getTime())
+        let instevaloMs = 1000 * 60 * 60 * 48 // 48 horas
+        if (timeDifference < instevaloMs) { return res.status(500).json({ error: 'Ya se envió un mensaje de validación a este mail' }) } else { await existingApoyoToken.remove() }
       }
 
       // creamos token para validación de apoyo
-      const uuid = uuidv4();
+      const uuid = uuidv4()
       const apoyo = await ApoyoToken.create({
         document: ObjectId(documentId),
         email,
@@ -770,41 +797,57 @@ router.route('/:id/apoyar-anon').post(
       notifier.sendValidarApoyoNotification(documentId, apoyo._id)
 
       res.status(status.OK).send()
-
     } catch (err) {
       next(err)
     }
   }
 )
 
-router.route('/apoyo-anon-validar/:uuid').get(
-    async (req, res, next) => {
-      try {
-        const uuid = req.params.uuid
+router.route('/apoyo-anon-validar/:uuid').post(
+  async (req, res, next) => {
+    try {
+      const uuid = req.params.uuid
 
-        const apoyo = await ApoyoToken.getByUuid(uuid).populate('document')
+      const apoyo = await ApoyoToken.getByUuid(uuid).populate('document')
 
-        if (!apoyo)
-          return res.status(500).json({error: 'Apoyo inexistente'})
-
-        // efectuamos apoyo
-        await Document.apoyarAnon(apoyo)
-
-        // borramos apoyoToken
-        apoyo.remove()
-
-        // traemos data actualizada
-        const document = await Document.get({ _id: apoyo.document._id })
-
-        // borramos apoyos con mails de gente!
-        delete document.apoyos
-
-        res.status(status.OK).json({document})
-      } catch (err) {
-        next(err)
+      if (!apoyo) {
+        return res.status(500).json({ error: 'Apoyo inexistente' })
       }
+
+      // efectuamos apoyo
+      await Document.apoyarAnon(apoyo)
+
+      // borramos apoyoToken
+      apoyo.remove()
+
+      // traemos data actualizada
+      const document = await Document.get({ _id: apoyo.document._id })
+      // console.dir(document)
+
+      // borramos apoyos con mails de gente!
+      delete document.apoyos
+
+      // We need to check if the document became popular
+      if (!document.popularMailSent) {
+        log.info('Checking if document became popular...')
+        const isPopular = await Document.isPopular(document._id)
+        // console.dir(isPopular)
+        if (isPopular) {
+          log.info('Document is popular, sending post to prepare mails...')
+          notifier.sendDocumentPopularNotification(document._id)
+          // log.info('Mails sent, updating document to save that mails were sent...')
+          // await Document.update(document._id, { popularMailSent: true })
+        } else {
+          log.info('Document is not popular, not sending mails')
+        }
+      }
+
+      return res.status(status.OK).json({ document })
+    } catch (err) {
+      next(err)
     }
-  )
+  }
+)
 
 function escapeTxt (text) {
   if (!text) return ''
@@ -817,7 +860,7 @@ function escapeTxt (text) {
     .trim()
 }
 
-function formatXlsDate (date){
+function formatXlsDate (date) {
   if (!date) return ''
 
   let isoStr = date.toISOString() // '2020-08-28T15:30:07.185Z'
@@ -840,7 +883,7 @@ router.route('/my-documents/export-xls')
         const today = new Date()
         const exportRows = []
 
-        const documents = await Document.retrieve({ author: req.session.user._id }, { createdAt: -1})
+        const documents = await Document.retrieve({ author: req.session.user._id }, { createdAt: -1 })
         console.log(`Exporting ${documents.length} documents to xls`)
 
         // Using async/await with a forEach loop - https://stackoverflow.com/questions/37576685/using-async-await-with-a-foreach-loop
@@ -867,47 +910,44 @@ router.route('/my-documents/export-xls')
             'Respuesta': '',
             'Fecha Aporte': '',
             'Aporte': '',
-            'Resuelto': '',
+            'Resuelto': ''
           }
 
-          if (!comments || !comments.length)
-            exportRows.push(Object.assign({}, documentData, commentData))
-          else
-            comments.forEach(com => {
+          if (!comments || !comments.length) { exportRows.push(Object.assign({}, documentData, commentData)) } else {
+            comments.forEach((com) => {
               let isContribution = com.field == 'articles'
 
               Object.assign(commentData, {
                 'Usuario Nombre': escapeTxt(com.user.fullname),
-                'Usuario Email': com.user.email || 'Sin email',
+                'Usuario Email': com.user.email || 'Sin email'
               })
 
-              if (isContribution){
+              if (isContribution) {
                 Object.assign(commentData, {
                   'Fecha Aporte': formatXlsDate(com.createdAt),
                   'Aporte': escapeTxt(com.content),
-                  'Resuelto': com.resolved ? 'Sí' : 'No',
+                  'Resuelto': com.resolved ? 'Sí' : 'No'
                 })
-              }else{
+              } else {
                 Object.assign(commentData, {
                   'Fecha Comentario': formatXlsDate(com.createdAt),
                   'Comentario': escapeTxt(com.content),
-                  'Respuesta': escapeTxt(com.reply),
+                  'Respuesta': escapeTxt(com.reply)
                 })
               }
 
               exportRows.push(Object.assign({}, documentData, commentData))
-
-            })//end comments.forEach
-          //end if
-        }))//end await Promise.all
+            })
+          }// end comments.forEach
+          // end if
+        }))// end await Promise.all
 
         console.log(`Sending xls with ${exportRows.length} rows`)
-        res.xls('', exportRows);
+        res.xls('', exportRows)
       } catch (err) {
         next(err)
       }
     })
-
 
 router.route('/my-documents/export-apoyos-xls').get(
   auth.keycloak.protect('realm:accountable'),
@@ -916,7 +956,7 @@ router.route('/my-documents/export-apoyos-xls').get(
       const today = new Date()
       const exportRows = []
 
-      const documents = await Document.retrieve({ author: req.session.user._id }, { createdAt: -1})
+      const documents = await Document.retrieve({ author: req.session.user._id }, { createdAt: -1 })
       console.log(`Exporting ${documents.length} documents apoyos to xls`)
 
       // Using async/await with a forEach loop - https://stackoverflow.com/questions/37576685/using-async-await-with-a-foreach-loop
@@ -927,18 +967,16 @@ router.route('/my-documents/export-apoyos-xls').get(
         const apoyosCount = doc.apoyos && doc.apoyos.length | 0
         let apoyosMails = []
 
-        if (doc.apoyos)
+        if (doc.apoyos) {
           for (const apoyo of doc.apoyos) {
             let mail = 'sin mail'
-            if (apoyo.email)
-              mail = apoyo.email
-            else if (apoyo.userId) {
-              const user = await User.get({_id: apoyo.userId}, true)
-              if (user && user.email)
-                mail = user.email
+            if (apoyo.email) { mail = apoyo.email } else if (apoyo.userId) {
+              const user = await User.get({ _id: apoyo.userId }, true)
+              if (user && user.email) { mail = user.email }
             }
             apoyosMails.push(mail)
           }
+        }
 
         const documentData = {
           'Fecha creación': formatXlsDate(doc.createdAt),
@@ -950,15 +988,14 @@ router.route('/my-documents/export-apoyos-xls').get(
         }
 
         exportRows.push(documentData)
-      }))//end await Promise.all
+      }))// end await Promise.all
 
       console.log(`Sending xls with ${exportRows.length} rows`)
-      res.xls('', exportRows);
+      res.xls('', exportRows)
     } catch (err) {
       next(err)
     }
   }
 )
-
 
 module.exports = router

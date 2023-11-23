@@ -23,6 +23,7 @@ require('../models/document')
 require('../models/documentVersion')
 require('../models/comment')
 require('../models/like')
+require('../models/migration')
 
 const db = mongoose.connection
 

@@ -12,14 +12,14 @@ const isSchemaValid = (schema) => {
   if (!validSchema) throw Error.ErrInvalidJSONSchema(ajv.errors)
 }
 
-const isDataValid = (docTypeFields, data) => {
+const isDataValid = async (docTypeFields, data) => {
   // ajv: Another JSON Schema Validator - https://www.npmjs.com/package/ajv
   let validate = ajv.compile({
     properties: docTypeFields.properties,
     additionalProperties: false,
     required: docTypeFields.required
   })
-  let valid = validate(data)
+  let valid = await validate(data)
   log.debug({ validData: valid })
   if (!valid) throw Error.ErrInvalidData(validate.errors)
   return true

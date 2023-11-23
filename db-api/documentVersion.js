@@ -10,6 +10,10 @@ exports.get = function get (query) {
   return DocumentVersion.findOne(query)
 }
 
+exports.findByQuery = function findByQuery (query) {
+  return DocumentVersion.find(query)
+}
+
 exports.update = async function update (id, content, customForm) {
   return DocumentVersion.findOne({ _id: id })
     .then((version) => {

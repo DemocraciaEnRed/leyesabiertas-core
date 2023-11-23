@@ -3,6 +3,7 @@ const { merge } = require('lodash/object')
 const Document = require('../models/document')
 const DocumentVersion = require('../models/documentVersion')
 const DocumentTag = require('../models/documentTag')
+const Comment = require('../models/comment')
 const dbUser = require('../db-api/user')
 const validator = require('../services/jsonSchemaValidator')
 const errors = require('../services/errors')
@@ -497,4 +498,27 @@ exports.getCountOfCommentsAndLikesPerDocument = async function getCountOfComment
   resData.sort((a, b) => b.totalInteraction - a.totalInteraction)
 
   return resData
+}
+
+exports.isPopular = async function isPopular (documentId) {
+  const document = await Document.findOne({ _id: documentId })
+  const documentAuthorId = document.author
+  // count comments but not from the author
+  const countCommentsFundation = await Comment.count({ document: document._id, field: 'fundation', author: { $ne: documentAuthorId } })
+  // count contributions but not from the author
+  const countContributionsArticles = await Comment.count({ document: document._id, field: 'articles', author: { $ne: documentAuthorId } })
+  // For a document to be popular, it needs to have:
+  // 30 apoyos
+  // 10 comments in fundation
+  // 5 comments in articles
+  // if it has one of those, it is popular
+  if (
+    document.apoyos.length >= 30 || // apoyosCount is a virtual field, needs 30
+    countCommentsFundation >= 10 || // needs 10 comments in the fundation
+    countContributionsArticles >= 5 // or needs 5 contributions in the articles
+  ) {
+    return true
+  } else {
+    return false
+  }
 }
